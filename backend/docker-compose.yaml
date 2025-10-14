@@ -1,0 +1,16 @@
+services:
+  handasaimschedule:
+    image: handasaimschedule:latest
+    ports:
+      - 3001:3001
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+  tunnel:
+    container_name: cloudflared-tunnel-handasaim
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}

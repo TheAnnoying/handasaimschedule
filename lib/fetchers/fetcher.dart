@@ -2,8 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// final BACKEND_URL = "http://handasaim.theannoying.dev";
-final BACKEND_URL = "http://192.168.1.110:3001";
+final BACKEND_URL = "http://handasaim.theannoying.dev";
 
 class ScheduleEntry {
   final List<String> hours;

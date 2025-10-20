@@ -1,25 +1,16 @@
-import 'dart:async';
-
+import 'package:handasaimschedule/fetchers/schedule_fetcher.dart';
+import 'package:handasaimschedule/fetchers/app_storage.dart';
+import 'package:handasaimschedule/theme/dynamic_theme.dart';
+import 'package:handasaimschedule/widgets/schedule.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:handasaimschedule/fetchers/appstorage.dart';
-import 'package:handasaimschedule/fetchers/fetcher.dart';
-import 'package:handasaimschedule/pages/settings/settings.dart';
-import 'package:handasaimschedule/pages/schedule/schedule.dart';
-import 'package:handasaimschedule/theme/dynamic_theme.dart';
-
-Future<void> refresh(bool full) async {
-  await Data.fetchClassNames();
-  await Data.fetchSchedule();
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await AppStorage.init();
-  refresh(true);
 
-  runApp(const App());
+  runApp(ProviderScope(child: App()));
 }
 
 class App extends StatefulWidget {
@@ -30,7 +21,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  int currentPageIndex = 0;
+  String _selectedClassName = AppStorage.get("className") ?? "ז 1";
 
   @override
   void initState() {
@@ -46,45 +37,67 @@ class _AppState extends State<App> {
             theme: getThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Color(AppStorage.get("color-app") ?? (lightDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.light)),
             darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Color(AppStorage.get("color-app") ?? (darkDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.dark)),
             debugShowCheckedModeBanner: false,
-            home: Directionality(textDirection: TextDirection.rtl, child:
-              Scaffold(
-                appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  backgroundColor: Colors.transparent,
-                  primary: true,
-                  actionsPadding: EdgeInsets.all(8),
-                  title: Text('מערכת הנדסאים', style: TextStyle(letterSpacing: 0.1)),
-                  actions: <Widget>[
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () async { refresh(true); },
-                    ),
-                  ],
-                ),
-                bottomNavigationBar: NavigationBar(
-                  onDestinationSelected: (int index) {
-                    setState(() {
-                      currentPageIndex = index;
-                    });
-                  },
-                  selectedIndex: currentPageIndex,
-                  destinations: const <Widget>[
-                    NavigationDestination(
-                      selectedIcon: Icon(Icons.home),
-                      icon: Icon(Icons.home_outlined),
-                      label: 'מערכת'
-                    ),
-                    NavigationDestination(
-                      selectedIcon: Icon(Icons.settings),
-                      icon: Icon(Icons.settings_outlined),
-                      label: 'הגדרות'
+            home: Directionality(textDirection: TextDirection.rtl,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final scheduleState = ref.watch(scheduleProvider);
+
+                  return scheduleState.when(
+                    loading: () => const Center(child: CircularProgressIndicator.adaptive()),
+                    error: (_, _) => const Center(child: Text('שגיאה בטעינת המערכת')),
+                    data: (schedule) => Scaffold(
+                      appBar: AppBar(
+                        centerTitle: false,
+                        automaticallyImplyLeading: false,
+                        primary: true,
+                        forceMaterialTransparency: true,
+                        title: Text(schedule.day, style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      body: SchedulePage(schedule: schedule),
+                      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+                      floatingActionButton: FloatingActionButton.extended(
+                        icon: Icon(Icons.edit),
+                        tooltip: "החלפת הכיתה המוצגת",
+                        label: Text(_selectedClassName),
+                        onPressed: () => showDialog(context: context, builder: (context) => AlertDialog(
+                        title: Text('בחירת כיתה', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                        icon: Icon(Icons.book),
+                        contentPadding: EdgeInsets.zero,
+                        content:
+                          schedule.getClasses().isEmpty
+                            ? Center(child: Text('לא נמצאו כיתות.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)))
+                            : SingleChildScrollView(
+                              child: Directionality(
+                                textDirection: TextDirection.rtl,
+                                child: RadioGroup<String>(
+                                  groupValue: _selectedClassName,
+                                  onChanged: (String? value) {
+                                    setState(() {
+                                      _selectedClassName = value ?? "ז 1";
+                                    });
+                                  
+                                    AppStorage.set("className", value ?? "ז 1");
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      ...schedule.getClasses().map((className) {
+                                        return ListTile(
+                                          title: Text(className.replaceFirst(' ', "'")),
+                                          leading: Radio<String>(value: className),
+                                        );
+                                      })
+                                    ]
+                                  )
+                                ),
+                              ),
+                            )
+                          )
+                        )
+                      ),
                     )
-                  ],
-                ),
-              body: <Widget>[
-                SchedulePage(),
-                SettingsPage()
-              ][currentPageIndex]
+                  );
+                }
               ),
             )
           );
@@ -92,4 +105,3 @@ class _AppState extends State<App> {
       );
   }
 }
-

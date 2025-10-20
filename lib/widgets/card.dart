@@ -1,16 +1,15 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
+import 'package:handasaimschedule/fetchers/schedule_fetcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:handasaimschedule/fetchers/fetcher.dart';
+import 'package:flutter/material.dart';
+import 'dart:async';
 
 class ScheduleCard extends StatefulWidget {
-  final ScheduleEntry entry;
-  final Schedule schedule;
+  final Lesson entry;
+  final List<Lesson> classSchedule;
   final MaterialColor? color;
 
-  const ScheduleCard({super.key, required this.entry, required this.schedule, required this.color});
+  const ScheduleCard({super.key, required this.entry, required this.classSchedule, required this.color});
 
   @override
   State<ScheduleCard> createState() => _ScheduleCardState();
@@ -109,9 +108,9 @@ class _ScheduleCardState extends State<ScheduleCard> {
   Widget build(BuildContext context) {
 
     final color = widget.color;
-    final schedule = widget.schedule;
+    final classSchedule = widget.classSchedule;
     final entry = widget.entry;
-    final entryIndex = schedule.entries.indexOf(entry);
+    final entryIndex = classSchedule.indexOf(entry);
     final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length;
 
     return Column(
@@ -121,10 +120,10 @@ class _ScheduleCardState extends State<ScheduleCard> {
           color: isBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
-              top: schedule.entries.indexOf(entry) == 0 || (expandForMoreSubjects && expandState)
+              top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBeforeEntryStart(entry.hours[1]) && isAfterEntryEnd(entryIndex == 0 ? entry.hours[1] : classSchedule[entryIndex - 1].hours[1])
                 ? const Radius.circular(16)
                 : Radius.circular(5),
-              bottom: schedule.entries.indexOf(entry) == schedule.entries.length - 1 || (expandForMoreSubjects && expandState)
+              bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 || (expandForMoreSubjects && expandState) || isAfterEntryEnd(entry.hours[1]) && isBeforeEntryStart(entryIndex == classSchedule.length - 1 ? entry.hours[1] : classSchedule[entryIndex + 1].hours[1])
                 ? const Radius.circular(16)
                 : Radius.circular(5)
             ),
@@ -132,11 +131,12 @@ class _ScheduleCardState extends State<ScheduleCard> {
           margin: EdgeInsets.only(
             left: 24,
             right: 24,
-            top: schedule.entries.indexOf(entry) == 0 ? 24 : 2,
-            bottom: schedule.entries.indexOf(entry) + 1 == schedule.entries.length ? 24 : 0
+            top: classSchedule.indexOf(entry) == 0 ? 24 : 2,
+            bottom: classSchedule.indexOf(entry) + 1 == classSchedule.length ? 24 : 0
           ),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
+            radius: 500,
             onTap: () => setState(() => expandState = !expandState),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 350),
@@ -156,11 +156,11 @@ class _ScheduleCardState extends State<ScheduleCard> {
                       spacing: 15,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 250), child: Icon(size: 20, Icons.arrow_downward)),
+                        if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
                         Text(entry.hours[1].replaceAll(' - ', '\n'), style: GoogleFonts.sanchez(fontSize: 13)),
                       ],
                     ),
-                    title: expandForMoreSubjects ? Text(entry.subjects[0] + "ועוד...") : Text(entry.subjects.join(', '), style: TextStyle(letterSpacing: 0.1)),
+                    title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.join(', '), style: TextStyle(letterSpacing: 0.1)),
                     subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                   ),
                   if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
@@ -174,26 +174,27 @@ class _ScheduleCardState extends State<ScheduleCard> {
                         subtitle: Text(entry.teachers[index]),
                         tileColor: Theme.of(context).colorScheme.surface.withAlpha(90)
                       ),
-                    ),
+                    )
                 ],
               ),
             )
           ),
         ),
-        if(isAfterEntryEnd(entry.hours[1]) && isBeforeEntryStart(entryIndex == schedule.entries.length - 1 ? entry.hours[1] : schedule.entries[entryIndex + 1].hours[1]))
-          Padding(
-            padding: EdgeInsets.only(left: 24, right: 24),
-            child: Row(
-              children: <Widget>[
-                Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 2, bottom: 2),
-                  child: Text('את/ה פה', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary),),
-                ),
-                Expanded(child: Divider())
-              ],
+        if(isAfterEntryEnd(entry.hours[1]) && isBeforeEntryStart(entryIndex == classSchedule.length - 1 ? entry.hours[1] : classSchedule[entryIndex + 1].hours[1]))
+         Card(
+          elevation: 0,
+          color: Theme.of(context).splashColor.withAlpha(55),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(16),
+              bottom: Radius.circular(0)
             ),
-          ).animate().fade()
+          ),
+          margin: EdgeInsets.only(left: 40, right: 40, top: 4, bottom: 0),
+          child: Center(
+            child: Text('את/ה פה', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary),),
+          )
+        ).animate().fade()
       ],
     );
   }

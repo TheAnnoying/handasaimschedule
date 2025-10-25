@@ -88,7 +88,7 @@ class ScheduleRepository {
         final second = cells.length > 1 ? cells[1].text.trim() : '';
         
         if(first.isNotEmpty && second.isEmpty && !currentDayFound) {
-          output.day = first.replaceAll(RegExp(r'[\d\.,]'), '').replaceFirst("חתך כיתות", "מערכת הנדסאים");
+          output.day = first.replaceAll(RegExp(r'[\d\.,-]'), '').replaceAll("חתך כיתות", '').trim();
           currentDayFound = true;
         }
 

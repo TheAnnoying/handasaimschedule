@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
   final List<Lesson> classSchedule;
@@ -30,7 +31,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     });
   }
 
-  bool isAfterEntryEnd(String entryHourRange) {
+  bool timeIsAfterEntryEnd(String entryHourRange) {
     final parts = entryHourRange.split('-');
     if (parts.length != 2) return false;
 
@@ -49,7 +50,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return _now.isAfter(endTime);
   }
 
-  bool isBeforeEntryStart(String entryHourRange) {
+  bool timeIsBeforeEntryStart(String entryHourRange) {
     final parts = entryHourRange.split('-');
     if (parts.length != 2) return false;
 
@@ -68,7 +69,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return _now.isBefore(startTime);
   }
 
-  bool isBetweenEntryStartAndEnd(String entryHourRange) {
+  bool timeIsBetweenEntryStartAndEnd(String entryHourRange) {
     final parts = entryHourRange.split('-');
     if (parts.length != 2) return false;
 
@@ -98,6 +99,57 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return _now.isAfter(startTime) && _now.isBefore(endTime);
   }
 
+  String timeDifference(String start, String end) {
+    List<String> startParts = start.split(':');
+    List<String> endParts = end.split(':');
+    int startMinutes = int.parse(startParts[0]) * 60 + int.parse(startParts[1]);
+    int endMinutes = int.parse(endParts[0]) * 60 + int.parse(endParts[1]);
+
+    int diff = endMinutes - startMinutes;
+    if (diff < 0) diff += 24 * 60;
+
+    int hours = diff ~/ 60;
+    int minutes = diff % 60;
+
+    if (hours == 0) {
+      return '$minutes דקות';
+    } else if (minutes == 0) {
+      return hours == 1 ? 'שעה' : '$hours שעות';
+    } else {
+      String hourPart = hours == 1 ? 'שעה' : '$hours שעות';
+      return '$hourPart ו$minutes דקות';
+    }
+  }
+
+  List<MaterialColor> leadingColors = [
+    Colors.pink,
+    Colors.red,
+    Colors.deepOrange,
+    Colors.orange,
+    Colors.amber,
+    Colors.yellow,
+    Colors.lightGreen,
+    Colors.green,
+    Colors.teal,
+    Colors.cyan,
+    Colors.lightBlue,
+    Colors.blue,
+    Colors.indigo,
+    Colors.purple,
+    Colors.deepPurple,
+    Colors.blueGrey,
+    Colors.brown,
+    Colors.grey,
+  ];
+
+  String getStartHour(String hour) {
+    return hour.replaceAll(RegExp(r'[\d: -]{8}$'), '');
+  }
+
+  String getEndHour(String hour) {
+    return hour.replaceAll(RegExp(r'^[\d: -]{8}'), '');
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -106,24 +158,31 @@ class _ScheduleCardState extends State<ScheduleCard> {
 
   @override
   Widget build(BuildContext context) {
-
     final color = widget.color;
     final classSchedule = widget.classSchedule;
     final entry = widget.entry;
+
     final entryIndex = classSchedule.indexOf(entry);
     final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length;
+
+    final nextEntry = entryIndex == classSchedule.length - 1 ? entry : classSchedule[entryIndex + 1];
+    final lastEntry = entryIndex == 0 ? entry : classSchedule[entryIndex - 1];
+
+    final isBreakBefore = getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]);
+    final isBreakAfter = getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]);
+    final timeIsWithinBreak = timeIsAfterEntryEnd(entry.hours[1]) && timeIsBeforeEntryStart(nextEntry.hours[1]);
 
     return Column(
       children: [
         Card(
           elevation: 0,
-          color: isBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
+          color: timeIsBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor.withAlpha(20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
-              top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBeforeEntryStart(entry.hours[1]) && isAfterEntryEnd(entryIndex == 0 ? entry.hours[1] : classSchedule[entryIndex - 1].hours[1])
+              top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
                 ? const Radius.circular(16)
                 : Radius.circular(5),
-              bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 || (expandForMoreSubjects && expandState) || isAfterEntryEnd(entry.hours[1]) && isBeforeEntryStart(entryIndex == classSchedule.length - 1 ? entry.hours[1] : classSchedule[entryIndex + 1].hours[1])
+              bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 || (expandForMoreSubjects && expandState) || isBreakAfter
                 ? const Radius.circular(16)
                 : Radius.circular(5)
             ),
@@ -136,7 +195,6 @@ class _ScheduleCardState extends State<ScheduleCard> {
           ),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
-            radius: 500,
             onTap: () => setState(() => expandState = !expandState),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 350),
@@ -146,10 +204,11 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 children: [
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: color?.shade100 ?? Theme.of(context).highlightColor,
+                      backgroundColor: color?.shade100 ?? leadingColors[entryIndex].shade100,
                       child: Text(
+                        textAlign: TextAlign.center,
                         entry.hours[0].replaceAll(RegExp(r'[^0-9]'), ''),
-                        style: GoogleFonts.kronaOne(color: color?.shade900 ?? Theme.of(context).hintColor, fontWeight: FontWeight.w500)
+                        style: GoogleFonts.kronaOne(color: color?.shade900 ?? leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
                       ),
                     ),
                     trailing: Row(
@@ -180,21 +239,17 @@ class _ScheduleCardState extends State<ScheduleCard> {
             )
           ),
         ),
-        if(isAfterEntryEnd(entry.hours[1]) && isBeforeEntryStart(entryIndex == classSchedule.length - 1 ? entry.hours[1] : classSchedule[entryIndex + 1].hours[1]))
-         Card(
-          elevation: 0,
-          color: Theme.of(context).splashColor.withAlpha(55),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(16),
-              bottom: Radius.circular(0)
-            ),
-          ),
-          margin: EdgeInsets.only(left: 40, right: 40, top: 4, bottom: 0),
-          child: Center(
-            child: Text('את/ה פה', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary),),
-          )
-        ).animate().fade()
+        if(isBreakAfter)
+        Padding(
+          padding: EdgeInsets.only(right: 24, left: 24, top: 5, bottom: 5),
+          child: Row(
+            children: [
+              Expanded(child: Divider()),
+              Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary),),
+              Expanded(child: Divider())
+            ]
+          ).animate().fade()
+        ),
       ],
     );
   }

@@ -34,8 +34,8 @@ class _AppState extends State<App> {
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
           return MaterialApp(
             title: "מערכת הנדסאים",
-            theme: getThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Color(AppStorage.get("color-app") ?? (lightDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.light)),
-            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Color(AppStorage.get("color-app") ?? (darkDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.dark)),
+            theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.content, seedColor: Color(AppStorage.get("color-app") ?? (lightDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.light)),
+            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.content, seedColor: Color(AppStorage.get("color-app") ?? (darkDynamic?.primary.toARGB32() ?? Colors.lightBlue.toARGB32())), brightness: Brightness.dark)),
             debugShowCheckedModeBanner: false,
             home: Directionality(textDirection: TextDirection.rtl,
               child: Consumer(
@@ -43,15 +43,15 @@ class _AppState extends State<App> {
                   final scheduleState = ref.watch(scheduleProvider);
 
                   return scheduleState.when(
-                    loading: () => const Center(child: CircularProgressIndicator.adaptive()),
-                    error: (_, _) => const Center(child: Text('שגיאה בטעינת המערכת')),
+                    loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+                    error: (_, _) => const Scaffold(body: Center(child: Text('שגיאה בטעינת המערכת'))),
                     data: (schedule) => Scaffold(
                       appBar: AppBar(
                         centerTitle: false,
                         automaticallyImplyLeading: false,
                         primary: true,
                         forceMaterialTransparency: true,
-                        title: Text(schedule.day, style: TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text("מערכת הנדסאים - ${schedule.day}", style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                       body: SchedulePage(schedule: schedule),
                       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,

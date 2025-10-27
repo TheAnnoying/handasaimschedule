@@ -33,6 +33,7 @@ class ClassSchedule {
 class Schedule {
   final List<ClassSchedule> _classes = [];
   String day = "יום לא ידוע";
+  Set<String> teacherList = {};
 
   void addClass(String name) {
     _classes.add(ClassSchedule(name));
@@ -51,6 +52,39 @@ class Schedule {
     return _classes.map((c) => c.name).toList();
   }
 
+  ClassSchedule getTeacherSchedule(String teacherName) {
+    final teacherSchedule = ClassSchedule(teacherName);
+
+    final Map<String, Lesson> mergedLessons = {};
+
+    for (final classSchedule in _classes) {
+      for (final lesson in classSchedule.lessons) {
+        for (int i = 0; i < lesson.teachers.length; i++) {
+          if (lesson.teachers[i] == teacherName) {
+            final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
+            final hour = lesson.hours;
+            final key = '$subject|$hour';
+
+            if (!mergedLessons.containsKey(key)) {
+              mergedLessons[key] = Lesson(
+                subjects: [subject],
+                hours: hour,
+                teachers: [classSchedule.name], // now used for class names
+              );
+            } else {
+              // add class name to existing merged lesson
+              mergedLessons[key]!.teachers.add(classSchedule.name);
+            }
+          }
+        }
+      }
+    }
+
+
+    teacherSchedule.lessons.addAll(mergedLessons.values);
+    teacherSchedule.lessons.sort((a, b) => a.hours[0].compareTo(b.hours[0]));
+    return teacherSchedule;
+  }
 }
 
 class ScheduleRepository {
@@ -88,7 +122,7 @@ class ScheduleRepository {
         final second = cells.length > 1 ? cells[1].text.trim() : '';
         
         if(first.isNotEmpty && second.isEmpty && !currentDayFound) {
-          output.day = first.replaceAll(RegExp(r'[\d\.,-]'), '').replaceAll("חתך כיתות", '').trim();
+          output.day = first.replaceAll(RegExp(r'[,-]'), '').replaceAll("חתך כיתות", '').trim();
           currentDayFound = true;
         }
 
@@ -111,11 +145,11 @@ class ScheduleRepository {
         for (int colIndex = 0; colIndex < cells.length; colIndex++) {
           final cellHtml = cells[colIndex].innerHtml.trim().replaceAll(RegExp(r'^<br>|<br>$'), '');
           if (rowIndex == 0 && cellHtml.isNotEmpty) {
-            output.addClass(cellHtml);
+            output.addClass(cellHtml.replaceFirst(' ', "'"));
           } else {
             final keys = output.getClasses();
             if (colIndex - 1 < 0 || colIndex - 1 >= keys.length) continue;
-            final index = keys[colIndex - 1];
+            final index = keys[colIndex - 1].replaceFirst(' ', "'");
 
             if(index.isNotEmpty && cellHtml.isNotEmpty) {
               final hours = cells.first.innerHtml.trim().split('<br>');
@@ -123,6 +157,8 @@ class ScheduleRepository {
               final teachers = [for (int i = 0; i < parts.length; i += 2) parts[i]];
               final subjects = [for (int i = 1; i < parts.length; i += 2) parts[i]];
               
+              output.teacherList.addAll(teachers);
+
               output.addLessonToClass(index, Lesson(
                 hours: [hours.first, hours.skip(1).join(' - ')],
                 subjects: subjects,

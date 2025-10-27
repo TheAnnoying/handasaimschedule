@@ -8,9 +8,8 @@ import 'dart:async';
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
   final List<Lesson> classSchedule;
-  final MaterialColor? color;
 
-  const ScheduleCard({super.key, required this.entry, required this.classSchedule, required this.color});
+  const ScheduleCard({super.key, required this.entry, required this.classSchedule});
 
   @override
   State<ScheduleCard> createState() => _ScheduleCardState();
@@ -158,25 +157,32 @@ class _ScheduleCardState extends State<ScheduleCard> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color;
     final classSchedule = widget.classSchedule;
     final entry = widget.entry;
 
     final entryIndex = classSchedule.indexOf(entry);
     final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length;
 
-    final nextEntry = entryIndex == classSchedule.length - 1 ? entry : classSchedule[entryIndex + 1];
-    final lastEntry = entryIndex == 0 ? entry : classSchedule[entryIndex - 1];
+    final nextEntry = entryIndex == classSchedule.length - 1 ? null : classSchedule[entryIndex + 1];
+    final lastEntry = entryIndex == 0 ? null : classSchedule[entryIndex - 1];
 
-    final isBreakBefore = getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]);
-    final isBreakAfter = getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]);
-    final timeIsWithinBreak = timeIsAfterEntryEnd(entry.hours[1]) && timeIsBeforeEntryStart(nextEntry.hours[1]);
+    final isBreakBefore = lastEntry == null
+      ? false
+      : getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]);
+
+    final isBreakAfter = nextEntry == null
+      ? false
+      : getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]);
+
+    final timeIsWithinBreak = nextEntry == null
+      ? false
+      : timeIsAfterEntryEnd(entry.hours[1]) && timeIsBeforeEntryStart(nextEntry.hours[1]);
 
     return Column(
       children: [
         Card(
           elevation: 0,
-          color: timeIsBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor.withAlpha(20),
+          color: timeIsBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
               top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
@@ -190,8 +196,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
           margin: EdgeInsets.only(
             left: 24,
             right: 24,
-            top: classSchedule.indexOf(entry) == 0 ? 24 : 2,
-            bottom: classSchedule.indexOf(entry) + 1 == classSchedule.length ? 24 : 0
+            top: 2,
+            bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 ? 80 : 0
           ),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
@@ -204,11 +210,11 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 children: [
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: color?.shade100 ?? leadingColors[entryIndex].shade100,
+                      backgroundColor: leadingColors[entryIndex].shade100,
                       child: Text(
                         textAlign: TextAlign.center,
                         entry.hours[0].replaceAll(RegExp(r'[^0-9]'), ''),
-                        style: GoogleFonts.kronaOne(color: color?.shade900 ?? leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
+                        style: GoogleFonts.kronaOne(color: leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
                       ),
                     ),
                     trailing: Row(
@@ -245,7 +251,10 @@ class _ScheduleCardState extends State<ScheduleCard> {
           child: Row(
             children: [
               Expanded(child: Divider()),
-              Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary),),
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+                child: Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
+              ),
               Expanded(child: Divider())
             ]
           ).animate().fade()

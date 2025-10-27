@@ -52,7 +52,7 @@ class Schedule {
     return _classes.map((c) => c.name).toList();
   }
 
-  ClassSchedule getTeacherSchedule(String teacherName) {
+  ClassSchedule? getTeacherSchedule(String teacherName) {
     final teacherSchedule = ClassSchedule(teacherName);
 
     final Map<String, Lesson> mergedLessons = {};

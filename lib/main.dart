@@ -34,8 +34,8 @@ class _AppState extends State<App> {
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
           return MaterialApp(
             title: "מערכת הנדסאים",
-            theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: lightDynamic?.primary ?? Colors.blue, brightness: Brightness.light)),
-            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: darkDynamic?.primary ?? Colors.blue, brightness: Brightness.dark)),
+            theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: lightDynamic?.primary ?? Colors.blue, brightness: Brightness.light)),
+            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: darkDynamic?.primary ?? Colors.blue, brightness: Brightness.dark)),
             debugShowCheckedModeBanner: false,
             home: Directionality(textDirection: TextDirection.rtl,
               child: Consumer(
@@ -54,95 +54,102 @@ class _AppState extends State<App> {
                         forceMaterialTransparency: true,
                         title: Text("מערכת הנדסאים"),
                       ),
-                      body: SchedulePage(schedule: schedule),
+                      body: Align(
+                        alignment: Alignment.topCenter,
+                        child: SchedulePage(schedule: schedule)
+                      ),
                       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
                       floatingActionButton: FloatingActionButton.extended(
                         icon: Icon(Icons.edit),
                         tooltip: "החלפת המידע המוצג",
                         label: Text(_selectedName),
-                        onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (context) => DefaultTabController(
-                          length: 2,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TabBar(
-                                splashBorderRadius: BorderRadius.circular(27),
-                                tabs: [
-                                  Tab(icon: Icon(Icons.book), text: "לפי כיתה"),
-                                  Tab(icon: Icon(Icons.school), text: "לפי מורה"),
-                                ]
-                              ),
-                              SizedBox(
-                                height: 500,
-                                child: TabBarView(
-                                  children: [
-                                    schedule.getClasses().isEmpty
-                                      ? Center(child: Text('לא נמצאו כיתות.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)))
-                                      : Center(
-                                        child: SingleChildScrollView(
-                                          child: Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: RadioGroup<String>(
-                                              groupValue: _selectedName,
-                                              onChanged: (String? value) {
-                                                setState(() {
-                                                  _selectedName = value ?? "ז'1";
-                                                });
+                        onPressed: () => showDialog(context: context, builder: (context) {
+                          return Dialog(
+                            child: DefaultTabController(
+                              length: 2,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TabBar(
+                                    splashBorderRadius: BorderRadius.circular(26),
+                                    tabs: [
+                                      Tab(icon: Icon(Icons.book), text: "לפי כיתה"),
+                                      Tab(icon: Icon(Icons.school), text: "לפי מורה"),
+                                    ]
+                                  ),
+                                  SizedBox(
+                                    height: 500,
+                                    child: TabBarView(
+                                      children: [
+                                        schedule.getClasses().isEmpty
+                                          ? Center(child: Text('לא נמצאו כיתות.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)))
+                                          : Center(
+                                            child: SingleChildScrollView(
+                                              child: Directionality(
+                                                textDirection: TextDirection.rtl,
+                                                child: RadioGroup<String>(
+                                                  groupValue: _selectedName,
+                                                  onChanged: (String? value) {
+                                                    setState(() {
+                                                      _selectedName = value ?? "ז'1";
+                                                    });
+                                                
+                                                    AppStorage.set("selectedName", value);
+                                                    AppStorage.set("selectedType", "class");
+                                                  },
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                                    children: [
+                                                      ...schedule.getClasses().map((name) {
+                                                        return ListTile(
+                                                          title: Text(name),
+                                                          leading: Radio<String>(value: name),
+                                                        );
+                                                      })
+                                                    ]
+                                                  )
+                                                ),
+                                              ),
+                                            )
+                                          ),
+                                        Center(
+                                          child: SingleChildScrollView(
+                                            child: Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: RadioGroup<String>(
+                                                groupValue: _selectedName,
+                                                onChanged: (String? value) {
+                                                  setState(() {
+                                                    _selectedName = value ?? (schedule.teacherList.toList()..sort()).first;
+                                                  });
                                               
-                                                AppStorage.set("selectedName", value ?? "ז'1");
-                                                AppStorage.set("selectedType", "class");
-                                              },
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  ...schedule.getClasses().map((className) {
-                                                    return ListTile(
-                                                      title: Text(className),
-                                                      leading: Radio<String>(value: className),
-                                                    );
-                                                  })
-                                                ]
-                                              )
+                                                  AppStorage.set("selectedName", value);
+                                                  AppStorage.set("selectedType", "teacher");
+                                                },
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  children: [
+                                                    ...(schedule.teacherList.toList()..sort()).map((name) {
+                                                      return ListTile(
+                                                        title: Text(name),
+                                                        leading: Radio<String>(value: name),
+                                                      );
+                                                    })
+                                                  ]
+                                                )
+                                              ),
                                             ),
-                                          ),
+                                          )
                                         ),
-                                      ),
-                                    Center(
-                                      child: SingleChildScrollView(
-                                          child: Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: RadioGroup<String>(
-                                              groupValue: _selectedName,
-                                              onChanged: (String? value) {
-                                                setState(() {
-                                                  _selectedName = value ?? "לפל לורטה";
-                                                });
-
-                                                AppStorage.set("selectedName", value ?? "לפל לורטה");
-                                                AppStorage.set("selectedType", "teacher");
-                                              },
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  ...schedule.teacherList.map((teacherName) {
-                                                    return ListTile(
-                                                      title: Text(teacherName),
-                                                      leading: Radio<String>(value: teacherName),
-                                                    );
-                                                  })
-                                                ]
-                                              )
-                                            ),
-                                          ),
-                                        ),
+                                      ],
                                     )
-                                  ],
-                                )
+                                  ),
+                                ],
+                              )
                               ),
-                            ],
-                          )
-                          )
-                        )
+                          );
+                        }
+                      )
                       ),
                     )
                   );
@@ -152,5 +159,50 @@ class _AppState extends State<App> {
           );
         }
       );
+  }
+}
+
+class _RadioListTab extends StatefulWidget {
+  final String selectedName;
+  final Schedule schedule;
+  final String type;
+  const _RadioListTab({required this.selectedName, required this.schedule, required this.type});
+
+  @override
+  State<_RadioListTab> createState() => _RadioListTabState();
+}
+
+class _RadioListTabState extends State<_RadioListTab> {
+  @override
+  Widget build(BuildContext context) {
+    String? selectedName = widget.selectedName;
+
+    return SingleChildScrollView(
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: RadioGroup<String>(
+          groupValue: selectedName,
+          onChanged: (String? value) {
+            setState(() {
+              selectedName = value;
+            });
+        
+            AppStorage.set("selectedName", value);
+            AppStorage.set("selectedType", widget.type);
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              ...(widget.type == "teacher" ? (widget.schedule.teacherList.toList()..sort()) : widget.schedule.getClasses()).map((name) {
+                return ListTile(
+                  title: Text(name),
+                  leading: Radio<String>(value: name),
+                );
+              })
+            ]
+          )
+        ),
+      ),
+    );
   }
 }

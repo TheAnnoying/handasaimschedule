@@ -234,7 +234,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
             left: 24,
             right: 24,
             top: 2,
-            bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 ? 80 : 0
+            bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 ? 100 : 0
           ),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
@@ -274,7 +274,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                         Text(entry.hours[1].replaceAll(' - ', '\n'), style: GoogleFonts.sanchez(fontSize: 13)),
                       ],
                     ),
-                    title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.join(', '), style: TextStyle(letterSpacing: 0.1)),
+                    title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
                     subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                   ),
                   if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)

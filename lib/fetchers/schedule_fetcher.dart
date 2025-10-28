@@ -63,7 +63,7 @@ class Schedule {
           if (lesson.teachers[i] == teacherName) {
             final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
             final hour = lesson.hours;
-            final key = '$subject|$hour';
+            final key = '$hour[0]';
 
             if (!mergedLessons.containsKey(key)) {
               mergedLessons[key] = Lesson(
@@ -82,7 +82,7 @@ class Schedule {
 
 
     teacherSchedule.lessons.addAll(mergedLessons.values);
-    teacherSchedule.lessons.sort((a, b) => a.hours[0].compareTo(b.hours[0]));
+    teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
     return teacherSchedule;
   }
 }
@@ -160,7 +160,7 @@ class ScheduleRepository {
               output.teacherList.addAll(teachers);
 
               output.addLessonToClass(index, Lesson(
-                hours: [hours.first, hours.skip(1).join(' - ')],
+                hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours.skip(1).join(' - ')],
                 subjects: subjects,
                 teachers: teachers
               ));
@@ -198,7 +198,7 @@ class ScheduleNotifier extends Notifier<AsyncValue<Schedule>> {
 
   void _startAutoRefresh() {
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(minutes: 10), (_) => _refresh());
+    _timer = Timer.periodic(Duration(minutes: 1), (_) => _refresh());
     ref.onDispose(() => _timer?.cancel());
   }
 

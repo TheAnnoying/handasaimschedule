@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
   final List<Lesson> classSchedule;
@@ -120,6 +119,42 @@ class _ScheduleCardState extends State<ScheduleCard> {
     }
   }
 
+  double timeProgress(String entryHourRange) {
+    final parts = entryHourRange.split('-');
+    if (parts.length != 2) return 0.0;
+
+    final start = parts[0].trim();
+    final end = parts[1].trim();
+
+    final startParts = start.split(':');
+    final endParts = end.split(':');
+    if (startParts.length != 2 || endParts.length != 2) return 0.0;
+
+    final startTime = DateTime(
+      _now.year,
+      _now.month,
+      _now.day,
+      int.parse(startParts[0]),
+      int.parse(startParts[1]),
+    );
+
+    final endTime = DateTime(
+      _now.year,
+      _now.month,
+      _now.day,
+      int.parse(endParts[0]),
+      int.parse(endParts[1]),
+    );
+
+    if (_now.isBefore(startTime)) return 0.0;
+    if (_now.isAfter(endTime)) return 1.0;
+
+    final totalDuration = endTime.difference(startTime).inSeconds;
+    final elapsed = _now.difference(startTime).inSeconds;
+
+    return elapsed / totalDuration;
+  }
+
   List<MaterialColor> leadingColors = [
     Colors.pink,
     Colors.red,
@@ -168,21 +203,23 @@ class _ScheduleCardState extends State<ScheduleCard> {
 
     final isBreakBefore = lastEntry == null
       ? false
-      : getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]);
+      : getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]) && getEndHour(lastEntry.hours[1]) != getEndHour(entry.hours[1]);
 
     final isBreakAfter = nextEntry == null
       ? false
-      : getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]);
+      : getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]) && getEndHour(entry.hours[1]) != getEndHour(nextEntry.hours[1]);
 
     final timeIsWithinBreak = nextEntry == null
       ? false
       : timeIsAfterEntryEnd(entry.hours[1]) && timeIsBeforeEntryStart(nextEntry.hours[1]);
 
+    final timeIsCurrentHour = timeIsBetweenEntryStartAndEnd(entry.hours[1]);
+
     return Column(
       children: [
         Card(
           elevation: 0,
-          color: timeIsBetweenEntryStartAndEnd(entry.hours[1]) ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
+          color: timeIsCurrentHour ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
               top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
@@ -209,13 +246,25 @@ class _ScheduleCardState extends State<ScheduleCard> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: leadingColors[entryIndex].shade100,
-                      child: Text(
-                        textAlign: TextAlign.center,
-                        entry.hours[0].replaceAll(RegExp(r'[^0-9]'), ''),
-                        style: GoogleFonts.kronaOne(color: leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
-                      ),
+                    leading: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: timeIsCurrentHour ? 15 : 20,
+                          backgroundColor: leadingColors[entryIndex].shade100,
+                          child: Text(
+                            textAlign: TextAlign.center,
+                            entry.hours[0],
+                            style: GoogleFonts.kronaOne(color: leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
+                          ),
+                        ),
+                        if(timeIsCurrentHour) TweenAnimationBuilder(
+                          tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1])),
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.easeInOutExpo,
+                          builder: (_, value, _) => CircularProgressIndicator(color: leadingColors[entryIndex].shade300, strokeCap: StrokeCap.round, strokeAlign: 1, value: value)
+                        ),
+                      ],
                     ),
                     trailing: Row(
                       spacing: 15,
@@ -247,7 +296,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
         ),
         if(isBreakAfter)
         Padding(
-          padding: EdgeInsets.only(right: 24, left: 24, top: 5, bottom: 5),
+          padding: EdgeInsets.only(right: 40, left: 40, top: 5, bottom: 5),
           child: Row(
             children: [
               Expanded(child: Divider()),

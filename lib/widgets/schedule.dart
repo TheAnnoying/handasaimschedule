@@ -22,13 +22,13 @@ class _SchedulePagePageState extends State<SchedulePage> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.only(right: 24, bottom: 5),
+              padding: EdgeInsets.only(bottom: 5, right: 12),
               child: Row(
                 spacing: 5,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.onSurface.withAlpha(200)),
-                  Text(widget.schedule.day, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(200), fontSize: 14)),
+                  Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
+                  Text(widget.schedule.day, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withAlpha(150), fontSize: 14)),
                 ],
               ),
             ),

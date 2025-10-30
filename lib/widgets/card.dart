@@ -231,8 +231,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
             ),
           ),
           margin: EdgeInsets.only(
-            left: 24,
-            right: 24,
+            right: 12,
+            left: 12,
             top: 2,
             bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 ? 100 : 0
           ),
@@ -295,19 +295,19 @@ class _ScheduleCardState extends State<ScheduleCard> {
           ),
         ),
         if(isBreakAfter)
-        Padding(
-          padding: EdgeInsets.only(right: 40, left: 40, top: 5, bottom: 5),
-          child: Row(
-            children: [
-              Expanded(child: Divider()),
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0, left: 8.0),
-                child: Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
-              ),
-              Expanded(child: Divider())
-            ]
-          ).animate().fade()
-        ),
+          Padding(
+            padding: EdgeInsets.only(right: 24, left: 24, top: 5, bottom: 5),
+            child: Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+                  child: Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
+                ),
+                Expanded(child: Divider())
+              ]
+            ).animate().fade()
+          ),
       ],
     );
   }

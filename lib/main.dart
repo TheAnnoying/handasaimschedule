@@ -83,8 +83,7 @@ class _AppState extends State<App> {
                                       children: [
                                         schedule.getClasses().isEmpty
                                           ? Center(child: Text('לא נמצאו כיתות.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)))
-                                          : Center(
-                                            child: SingleChildScrollView(
+                                          : SingleChildScrollView(
                                               child: Directionality(
                                                 textDirection: TextDirection.rtl,
                                                 child: RadioGroup<String>(
@@ -96,24 +95,23 @@ class _AppState extends State<App> {
                                                 
                                                     AppStorage.set("selectedName", value);
                                                     AppStorage.set("selectedType", "class");
+                                                    Navigator.pop(context); 
                                                   },
                                                   child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.end,
                                                     children: [
                                                       ...schedule.getClasses().map((name) {
-                                                        return ListTile(
-                                                          title: Text(name),
-                                                          leading: Radio<String>(value: name),
+                                                        return RadioListTile(
+                                                          value: name,
+                                                          title: Text(name)
                                                         );
                                                       })
                                                     ]
                                                   )
                                                 ),
                                               ),
-                                            )
-                                          ),
-                                        Center(
-                                          child: SingleChildScrollView(
+                                            ),
+                                          SingleChildScrollView(
                                             child: Directionality(
                                               textDirection: TextDirection.rtl,
                                               child: RadioGroup<String>(
@@ -125,14 +123,15 @@ class _AppState extends State<App> {
                                               
                                                   AppStorage.set("selectedName", value);
                                                   AppStorage.set("selectedType", "teacher");
+                                                  Navigator.pop(context);                                                 
                                                 },
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.end,
                                                   children: [
                                                     ...(schedule.teacherList.toList()..sort()).map((name) {
-                                                      return ListTile(
+                                                      return RadioListTile(
+                                                        value: name,
                                                         title: Text(name),
-                                                        leading: Radio<String>(value: name),
                                                       );
                                                     })
                                                   ]
@@ -140,7 +139,6 @@ class _AppState extends State<App> {
                                               ),
                                             ),
                                           )
-                                        ),
                                       ],
                                     )
                                   ),

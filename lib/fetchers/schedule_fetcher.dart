@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
-final SHEETS_URL = "https://docs.google.com/spreadsheets/d/1KChK1mc1hoO8Okm0uJPuehrWYtetqvq4/export?format=zip";
+final sheetsURL = "https://docs.google.com/spreadsheets/d/1KChK1mc1hoO8Okm0uJPuehrWYtetqvq4/export?format=zip";
 
 class Lesson {
   final List<String> subjects;
@@ -80,7 +80,6 @@ class Schedule {
       }
     }
 
-
     teacherSchedule.lessons.addAll(mergedLessons.values);
     teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
     return teacherSchedule;
@@ -108,7 +107,7 @@ class ScheduleRepository {
   }
 
   Future<Schedule> fetchSchedule() async {
-      final htmlData = await downloadAndExtractHtml(SHEETS_URL);
+      final htmlData = await downloadAndExtractHtml(sheetsURL);
       final document = html_parser.parse(htmlData);
       final Schedule output = Schedule();
 
@@ -156,11 +155,11 @@ class ScheduleRepository {
               final parts = cellHtml.split('<br>').toList();
               final teachers = [for (int i = 0; i < parts.length; i += 2) parts[i]];
               final subjects = [for (int i = 1; i < parts.length; i += 2) parts[i]];
-              
+
               output.teacherList.addAll(teachers);
 
               output.addLessonToClass(index, Lesson(
-                hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours.skip(1).join(' - ')],
+                hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours[1], hours[2]],
                 subjects: subjects,
                 teachers: teachers
               ));

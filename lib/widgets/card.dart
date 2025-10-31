@@ -1,8 +1,10 @@
+import 'package:wave_progress_indicator/wave_progress_indicator.dart';
 import 'package:handasaimschedule/fetchers/schedule_fetcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
+
 
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
@@ -29,53 +31,39 @@ class _ScheduleCardState extends State<ScheduleCard> {
     });
   }
 
-  bool timeIsAfterEntryEnd(String entryHourRange) {
-    final parts = entryHourRange.split('-');
-    if (parts.length != 2) return false;
-
-    final end = parts[1].trim();
-    final endParts = end.split(':');
-    if (endParts.length != 2) return false;
+  bool timeIsAfterHour(String hour) {
+    final hourParts = hour.split(':');
+    if (hourParts.length != 2) return false;
 
     final endTime = DateTime(
       _now.year,
       _now.month,
       _now.day,
-      int.parse(endParts[0]),
-      int.parse(endParts[1]),
+      int.parse(hourParts[0]),
+      int.parse(hourParts[1]),
     );
 
     return _now.isAfter(endTime);
   }
 
-  bool timeIsBeforeEntryStart(String entryHourRange) {
-    final parts = entryHourRange.split('-');
-    if (parts.length != 2) return false;
-
-    final start = parts[0].trim();
-    final startParts = start.split(':');
-    if (startParts.length != 2) return false;
+  bool timeIsBeforeHour(String hour) {
+    final hourParts = hour.split(':');
+    if (hourParts.length != 2) return false;
 
     final startTime = DateTime(
       _now.year,
       _now.month,
       _now.day,
-      int.parse(startParts[0]),
-      int.parse(startParts[1]),
+      int.parse(hourParts[0]),
+      int.parse(hourParts[1]),
     );
 
     return _now.isBefore(startTime);
   }
 
-  bool timeIsBetweenEntryStartAndEnd(String entryHourRange) {
-    final parts = entryHourRange.split('-');
-    if (parts.length != 2) return false;
-
-    final start = parts[0].trim();
-    final end = parts[1].trim();
-
-    final startParts = start.split(':');
-    final endParts = end.split(':');
+  bool timeIsBetweenHours(String startHour, String endHour) {
+    final startParts = startHour.split(':');
+    final endParts = endHour.split(':');
     if (startParts.length != 2 || endParts.length != 2) return false;
 
     final startTime = DateTime(
@@ -119,15 +107,9 @@ class _ScheduleCardState extends State<ScheduleCard> {
     }
   }
 
-  double timeProgress(String entryHourRange) {
-    final parts = entryHourRange.split('-');
-    if (parts.length != 2) return 0.0;
-
-    final start = parts[0].trim();
-    final end = parts[1].trim();
-
-    final startParts = start.split(':');
-    final endParts = end.split(':');
+  double timeProgress(String startHour, String endHour) {
+    final startParts = startHour.split(':');
+    final endParts = endHour.split(':');
     if (startParts.length != 2 || endParts.length != 2) return 0.0;
 
     final startTime = DateTime(
@@ -176,14 +158,6 @@ class _ScheduleCardState extends State<ScheduleCard> {
     Colors.grey,
   ];
 
-  String getStartHour(String hour) {
-    return hour.replaceAll(RegExp(r'[\d: -]{8}$'), '');
-  }
-
-  String getEndHour(String hour) {
-    return hour.replaceAll(RegExp(r'^[\d: -]{8}'), '');
-  }
-
   @override
   void dispose() {
     _timer.cancel();
@@ -203,23 +177,32 @@ class _ScheduleCardState extends State<ScheduleCard> {
 
     final isBreakBefore = lastEntry == null
       ? false
-      : getEndHour(lastEntry.hours[1]) != getStartHour(entry.hours[1]) && getEndHour(lastEntry.hours[1]) != getEndHour(entry.hours[1]);
+      : lastEntry.hours[2] != entry.hours[1] && lastEntry.hours[2] != entry.hours[2];
 
     final isBreakAfter = nextEntry == null
       ? false
-      : getEndHour(entry.hours[1]) != getStartHour(nextEntry.hours[1]) && getEndHour(entry.hours[1]) != getEndHour(nextEntry.hours[1]);
+      : entry.hours[2] != nextEntry.hours[1] && entry.hours[2] != nextEntry.hours[2];
 
     final timeIsWithinBreak = nextEntry == null
       ? false
-      : timeIsAfterEntryEnd(entry.hours[1]) && timeIsBeforeEntryStart(nextEntry.hours[1]);
+      : timeIsAfterHour(entry.hours[2]) && timeIsBeforeHour(nextEntry.hours[1]);
 
-    final timeIsCurrentHour = timeIsBetweenEntryStartAndEnd(entry.hours[1]);
+    final timeIsCurrentHour = timeIsBetweenHours(entry.hours[1], entry.hours[2]);
+
+    final adaptiveDivider = Expanded(
+      child: Divider(
+        color: timeIsWithinBreak
+          ? Theme.of(context).colorScheme.primaryFixedDim
+          : Theme.of(context).colorScheme.onSurface.withAlpha(150),
+        thickness: 0.5
+      )
+    );
 
     return Column(
-      children: [
+      children: [            
         Card(
           elevation: 0,
-          color: timeIsCurrentHour ? Theme.of(context).splashColor.withAlpha(55) : Theme.of(context).splashColor,
+          color: Theme.of(context).splashColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
               top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
@@ -234,23 +217,46 @@ class _ScheduleCardState extends State<ScheduleCard> {
             right: 12,
             left: 12,
             top: 2,
-            bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 ? 100 : 0
           ),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
-            onTap: () => setState(() => expandState = !expandState),
+            onTap: () => setState(() {
+              if(expandForMoreSubjects) expandState = !expandState;
+            }),
             child: AnimatedSize(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeOutExpo,
               alignment: Alignment.topCenter,
-              child: Column(
+              child: Stack(
                 children: [
-                  ListTile(
-                    leading: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: timeIsCurrentHour ? 15 : 20,
+                  if(timeIsCurrentHour) Positioned.fill(
+                    child: IgnorePointer(
+                      child: RotatedBox(
+                        quarterTurns: expandState ? 0 : 1,
+                        child: TweenAnimationBuilder(
+                            tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1], entry.hours[2])),
+                            duration: Duration(seconds: 1),
+                            curve: Curves.easeOutExpo,
+                            builder: (_, value, _) => WaveProgressIndicator(
+                              waveHeight: 3,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(context).splashColor.withAlpha(40),
+                                  Theme.of(context).highlightColor.withAlpha(20),
+                                ],
+                                begin: Alignment.center,
+                                end: Alignment.bottomCenter,
+                              ),
+                              value: value
+                            )
+                        ),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      ListTile(
+                        leading: CircleAvatar(
                           backgroundColor: leadingColors[entryIndex].shade100,
                           child: Text(
                             textAlign: TextAlign.center,
@@ -258,55 +264,51 @@ class _ScheduleCardState extends State<ScheduleCard> {
                             style: GoogleFonts.kronaOne(color: leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
                           ),
                         ),
-                        if(timeIsCurrentHour) TweenAnimationBuilder(
-                          tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1])),
-                          duration: Duration(milliseconds: 500),
-                          curve: Curves.easeInOutExpo,
-                          builder: (_, value, _) => CircularProgressIndicator(color: leadingColors[entryIndex].shade300, strokeCap: StrokeCap.round, strokeAlign: 1, value: value)
+                        trailing: Row(
+                          spacing: 15,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
+                            Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
+                          ],
+                        ),
+                        title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
+                        subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
+                      ),
+                      if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
+                        Padding(
+                          padding: EdgeInsets.only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: index == 0 ? Radius.circular(16) : Radius.circular(5), bottom: index == entry.subjects.length - 1 ? Radius.circular(16) : Radius.circular(5)),),
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            title: Text(entry.subjects[index]),
+                            subtitle: Text(entry.teachers[index]),
+                            tileColor: Theme.of(context).colorScheme.surface.withAlpha(200)
+                          ),
                         ),
                       ],
-                    ),
-                    trailing: Row(
-                      spacing: 15,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
-                        Text(entry.hours[1].replaceAll(' - ', '\n'), style: GoogleFonts.sanchez(fontSize: 13)),
-                      ],
-                    ),
-                    title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
-                    subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                   ),
-                  if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
-                    Padding(
-                      padding: EdgeInsets.only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
-                      child: ListTile(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: index == 0 ? const Radius.circular(16) : Radius.circular(5), bottom: index == entry.subjects.length - 1 ? const Radius.circular(16) : Radius.circular(5)),),
-                        dense: true,
-                        visualDensity: VisualDensity.compact,
-                        title: Text(entry.subjects[index]),
-                        subtitle: Text(entry.teachers[index]),
-                        tileColor: Theme.of(context).colorScheme.surface.withAlpha(90)
-                      ),
-                    )
-                ],
+                ]
               ),
             )
           ),
         ),
         if(isBreakAfter)
-          Padding(
-            padding: EdgeInsets.only(right: 24, left: 24, top: 5, bottom: 5),
-            child: Row(
-              children: [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0, left: 8.0),
-                  child: Text("${timeDifference(getEndHour(entry.hours[1]), getStartHour(nextEntry.hours[1]))} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
-                ),
-                Expanded(child: Divider())
-              ]
-            ).animate().fade()
+          Center(
+            child: Padding(
+              padding: EdgeInsets.only(right: 18, left: 18, top: 5, bottom: 5),
+              child: Row(
+                children: [
+                  adaptiveDivider,
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+                    child: Text("${timeDifference(entry.hours[2], nextEntry.hours[1])} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
+                  ),
+                  adaptiveDivider,
+                ]
+              ).animate().fade()
+            ),
           ),
       ],
     );

@@ -34,8 +34,8 @@ class _AppState extends State<App> {
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
           return MaterialApp(
             title: "מערכת הנדסאים",
-            theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: lightDynamic?.primary ?? Colors.blue, brightness: Brightness.light)),
-            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: darkDynamic?.primary ?? Colors.blue, brightness: Brightness.dark)),
+            theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: lightDynamic?.primary ?? Colors.blue, brightness: Brightness.light)),
+            darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: darkDynamic?.primary ?? Colors.blue, brightness: Brightness.dark)),
             debugShowCheckedModeBanner: false,
             home: Directionality(textDirection: TextDirection.rtl,
               child: Consumer(
@@ -65,6 +65,7 @@ class _AppState extends State<App> {
                         label: Text(_selectedName),
                         onPressed: () => showDialog(context: context, builder: (context) {
                           return Dialog(
+                            constraints: BoxConstraints.loose(Size.fromWidth(400)),
                             child: DefaultTabController(
                               length: 2,
                               child: Column(
@@ -157,50 +158,5 @@ class _AppState extends State<App> {
           );
         }
       );
-  }
-}
-
-class _RadioListTab extends StatefulWidget {
-  final String selectedName;
-  final Schedule schedule;
-  final String type;
-  const _RadioListTab({required this.selectedName, required this.schedule, required this.type});
-
-  @override
-  State<_RadioListTab> createState() => _RadioListTabState();
-}
-
-class _RadioListTabState extends State<_RadioListTab> {
-  @override
-  Widget build(BuildContext context) {
-    String? selectedName = widget.selectedName;
-
-    return SingleChildScrollView(
-      child: Directionality(
-        textDirection: TextDirection.rtl,
-        child: RadioGroup<String>(
-          groupValue: selectedName,
-          onChanged: (String? value) {
-            setState(() {
-              selectedName = value;
-            });
-        
-            AppStorage.set("selectedName", value);
-            AppStorage.set("selectedType", widget.type);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              ...(widget.type == "teacher" ? (widget.schedule.teacherList.toList()..sort()) : widget.schedule.getClasses()).map((name) {
-                return ListTile(
-                  title: Text(name),
-                  leading: Radio<String>(value: name),
-                );
-              })
-            ]
-          )
-        ),
-      ),
-    );
   }
 }

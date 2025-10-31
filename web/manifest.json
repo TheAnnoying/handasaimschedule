@@ -3,9 +3,9 @@
     "short_name": "handasaimschedule",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "אתר להצגת מערכת הנדסאים..",
+    "background_color": "#111418",
+    "theme_color": "#111418",
+    "description": "אפליקציה להצגת המערכת היומית בתיכון הנדסאים",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

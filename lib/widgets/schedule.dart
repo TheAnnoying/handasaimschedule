@@ -15,7 +15,17 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePagePageState extends State<SchedulePage> {
   @override
   Widget build(BuildContext context) {
-    final classSchedule = AppStorage.get("selectedType") == "class" ? widget.schedule.getClass(AppStorage.get("selectedName") ?? "ז'1")!.lessons : widget.schedule.getTeacherSchedule(AppStorage.get("selectedName") ?? "לפל לורטה")!.lessons;
+    final List<Lesson> classLessons;
+    switch(AppStorage.get("selectedType")) {
+      case "teacher":
+        classLessons = widget.schedule.getTeacherSchedule(AppStorage.get("selectedName"))!.lessons;
+      case "subject":
+        classLessons = widget.schedule.getSubjectSchedule(AppStorage.get("selectedName"))!.lessons;
+      default:
+        classLessons = widget.schedule.getClass(AppStorage.get("selectedName") ?? widget.schedule.getClasses()[0])!.lessons;
+        break;
+    }
+
     return SizedBox(
       width: 400,
       child: SingleChildScrollView(
@@ -32,14 +42,17 @@ class _SchedulePagePageState extends State<SchedulePage> {
                 ],
               ),
             ),
-            ...classSchedule.map((entry) {
-              return ScheduleCard(
-                entry: entry,
-                classSchedule: classSchedule
-              ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
-            })
-          ]
-        )
+            if(classLessons.isNotEmpty)
+              ...classLessons.map((entry) {
+                return ScheduleCard(
+                  entry: entry,
+                  classSchedule: classLessons
+                ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
+              }),
+            if(classLessons.isEmpty)
+              Text("אין שיעורים")
+          ],
+        ),
       ),
     );
   }

@@ -47,8 +47,7 @@ class _AppState extends State<App> {
                     error: (_, _) => const Scaffold(body: Center(child: Text('שגיאה בטעינת המערכת'))),
                     data: (schedule) => Scaffold(
                       appBar: AppBar(
-                        centerTitle: false,
-                        titleSpacing: 24,
+                        centerTitle: true,
                         automaticallyImplyLeading: false,
                         primary: true,
                         forceMaterialTransparency: true,

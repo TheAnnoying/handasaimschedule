@@ -299,7 +299,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                   adaptiveDivider,
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0, left: 8.0),
-                    child: Text("${timeDifference(entry.hours[2], nextEntry.hours[1])} ${timeIsWithinBreak ? ' - כעת' : ''}", style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
+                    child: Text(timeDifference(entry.hours[2], nextEntry.hours[1]) + (timeIsWithinBreak ? ' - כעת' : ''), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
                   ),
                   adaptiveDivider,
                 ]

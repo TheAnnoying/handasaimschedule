@@ -192,8 +192,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
     final adaptiveDivider = Expanded(
       child: Divider(
         color: timeIsWithinBreak
-          ? Theme.of(context).colorScheme.primaryFixedDim
-          : Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          ? Theme.of(context).dividerColor
+          : Theme.of(context).dividerTheme.color,
         thickness: 0.5
       )
     );
@@ -213,11 +213,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 : Radius.circular(5)
             ),
           ),
-          margin: EdgeInsets.only(
-            right: 12,
-            left: 12,
-            top: 2,
-          ),
+          margin: EdgeInsets.only(right: 12, left: 12, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 120 : 0),
           clipBehavior: Clip.hardEdge,
           child: InkWell(
             onTap: () => setState(() {
@@ -284,7 +280,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                             visualDensity: VisualDensity.compact,
                             title: Text(entry.subjects[index]),
                             subtitle: Text(entry.teachers[index]),
-                            tileColor: Theme.of(context).colorScheme.surface.withAlpha(200)
+                            tileColor: Theme.of(context).splashColor
                           ),
                         ),
                       ],

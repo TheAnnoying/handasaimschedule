@@ -272,7 +272,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                             Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
                           ],
                         ),
-                        title: expandForMoreSubjects ? Text("${entry.subjects[0]}ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
+                        title: expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
                         subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                       ),
                       if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)

@@ -34,6 +34,7 @@ class Schedule {
   final List<ClassSchedule> _classes = [];
   String day = "יום לא ידוע";
   Set<String> teacherList = {};
+  Set<String> subjectList = {};
 
   void addClass(String name) {
     _classes.add(ClassSchedule(name));
@@ -54,7 +55,6 @@ class Schedule {
 
   ClassSchedule? getTeacherSchedule(String teacherName) {
     final teacherSchedule = ClassSchedule(teacherName);
-
     final Map<String, Lesson> mergedLessons = {};
 
     for (final classSchedule in _classes) {
@@ -74,6 +74,41 @@ class Schedule {
             } else {
               // add class name to existing merged lesson
               mergedLessons[key]!.teachers.add(classSchedule.name);
+            }
+          }
+        }
+      }
+    }
+
+    teacherSchedule.lessons.addAll(mergedLessons.values);
+    teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
+    return teacherSchedule;
+  }
+
+  ClassSchedule? getSubjectSchedule(String subjectName) {
+    final teacherSchedule = ClassSchedule(subjectName);
+    final Map<String, Lesson> mergedLessons = {};
+
+    for (final classSchedule in _classes) {
+      for (final lesson in classSchedule.lessons) {
+        for (int i = 0; i < lesson.subjects.length; i++) {
+          if (lesson.subjects[i] == subjectName) {
+            final teacher = i < lesson.teachers.length ? lesson.teachers[i] : 'לא ידוע';
+            final hour = lesson.hours;
+            final key = '$hour[0]';
+
+            if (!mergedLessons.containsKey(key)) {
+              mergedLessons[key] = Lesson(
+                subjects: [classSchedule.name], // now used for class names
+                hours: hour,
+                teachers: [teacher],
+              );
+            } else {
+              // add teacher to existing lesson
+              mergedLessons[key]!.teachers.add(teacher);
+
+              // add class to existing lesson
+              mergedLessons[key]!.subjects.add(classSchedule.name);
             }
           }
         }
@@ -153,10 +188,22 @@ class ScheduleRepository {
             if(index.isNotEmpty && cellHtml.isNotEmpty) {
               final hours = cells.first.innerHtml.trim().split('<br>');
               final parts = cellHtml.split('<br>').toList();
-              final teachers = [for (int i = 0; i < parts.length; i += 2) parts[i]];
-              final subjects = [for (int i = 1; i < parts.length; i += 2) parts[i]];
+
+              final teachers = <String>[];
+              final subjects = <String>[];
+
+              for (int i = 0; i < parts.length; i += 2) {
+                final teacher = parts[i].trim();
+                final subject = (i + 1 < parts.length) ? parts[i + 1].trim() : '';
+
+                if(teacher.isNotEmpty && subject.isNotEmpty) {
+                  teachers.add(teacher);
+                  subjects.add(subject);
+                }
+              }
 
               output.teacherList.addAll(teachers);
+              output.subjectList.addAll(subjects);
 
               output.addLessonToClass(index, Lesson(
                 hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours[1], hours[2]],

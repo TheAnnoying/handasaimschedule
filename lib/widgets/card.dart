@@ -199,11 +199,13 @@ class _ScheduleCardState extends State<ScheduleCard> {
     );
 
     return Column(
-      children: [            
-        Card(
-          elevation: 0,
-          color: Theme.of(context).splashColor,
-          shape: RoundedRectangleBorder(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(right: 24, left: 24, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 48 : 0),
+          child: Material(
+            elevation: 0,
+            type: MaterialType.card,
+            color: Theme.of(context).colorScheme.surfaceContainer,
             borderRadius: BorderRadius.vertical(
               top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
                 ? const Radius.circular(16)
@@ -212,88 +214,86 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 ? const Radius.circular(16)
                 : Radius.circular(5)
             ),
-          ),
-          margin: EdgeInsets.only(right: 12, left: 12, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 120 : 0),
-          clipBehavior: Clip.hardEdge,
-          child: InkWell(
-            onTap: () => setState(() {
-              if(expandForMoreSubjects) expandState = !expandState;
-            }),
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeOutExpo,
-              alignment: Alignment.topCenter,
-              child: Stack(
-                children: [
-                  if(timeIsCurrentHour) Positioned.fill(
-                    child: IgnorePointer(
-                      child: RotatedBox(
-                        quarterTurns: expandState ? 0 : 1,
-                        child: TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1], entry.hours[2])),
-                            duration: Duration(seconds: 1),
-                            curve: Curves.easeOutExpo,
-                            builder: (_, value, _) => WaveProgressIndicator(
-                              waveHeight: 3,
-                              gradient: LinearGradient(
-                                colors: [
-                                  Theme.of(context).splashColor.withAlpha(40),
-                                  Theme.of(context).highlightColor.withAlpha(20),
-                                ],
-                                begin: Alignment.center,
-                                end: Alignment.bottomCenter,
-                              ),
-                              value: value
-                            )
+            clipBehavior: Clip.hardEdge,
+            child: InkWell(
+              onTap: () => setState(() {
+                if(expandForMoreSubjects) expandState = !expandState;
+              }),
+              child: AnimatedSize(
+                duration: Duration(milliseconds: 350),
+                curve: Curves.easeOutExpo,
+                alignment: Alignment.topCenter,
+                child: Stack(
+                  children: [
+                    if(timeIsCurrentHour) Positioned.fill(
+                      child: IgnorePointer(
+                        child: RotatedBox(
+                          quarterTurns: expandState ? 0 : 1,
+                          child: TweenAnimationBuilder(
+                              tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1], entry.hours[2])),
+                              duration: Duration(seconds: 1),
+                              curve: Curves.easeOutExpo,
+                              builder: (_, value, _) => WaveProgressIndicator(
+                                waveHeight: 3,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Theme.of(context).splashColor.withAlpha(40),
+                                    Theme.of(context).highlightColor.withAlpha(20),
+                                  ],
+                                  begin: Alignment.center,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                value: value
+                              )
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Column(
-                    children: [
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: leadingColors[entryIndex].shade100,
-                          child: Text(
-                            textAlign: TextAlign.center,
-                            entry.hours[0],
-                            style: GoogleFonts.kronaOne(color: leadingColors[entryIndex].shade900, fontWeight: FontWeight.w500)
+                    Column(
+                      children: [
+                        ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: leadingColors[entryIndex].shade200,
+                            child: Text(
+                              textAlign: TextAlign.center,
+                              entry.hours[0],
+                              style: GoogleFonts.kronaOne(fontWeight: FontWeight.w500, color: leadingColors[entryIndex].shade900)
+                            ),
                           ),
-                        ),
-                        trailing: Row(
-                          spacing: 15,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
-                            Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
-                          ],
-                        ),
-                        title: expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
-                        subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
-                      ),
-                      if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
-                        Padding(
-                          padding: EdgeInsets.only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
-                          child: ListTile(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: index == 0 ? Radius.circular(16) : Radius.circular(5), bottom: index == entry.subjects.length - 1 ? Radius.circular(16) : Radius.circular(5)),),
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            title: Text(entry.subjects[index]),
-                            subtitle: Text(entry.teachers[index]),
-                            tileColor: Theme.of(context).splashColor
+                          trailing: Row(
+                            spacing: 15,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
+                              Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
+                            ],
                           ),
+                          title: expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
+                          subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                         ),
-                      ],
-                  ),
-                ]
-              ),
-            )
+                        if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
+                          Padding(
+                            padding: EdgeInsets.only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
+                            child: ListTile(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: index == 0 ? Radius.circular(16) : Radius.circular(5), bottom: index == entry.subjects.length - 1 ? Radius.circular(16) : Radius.circular(5)),),
+                              dense: true,
+                              title: Text(entry.subjects[index]),
+                              subtitle: Text(entry.teachers[index]),
+                              tileColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8)
+                            ),
+                          ),
+                        ],
+                    ),
+                  ]
+                ),
+              )
+            ),
           ),
         ),
         if(isBreakAfter)
           Center(
             child: Padding(
-              padding: EdgeInsets.only(right: 18, left: 18, top: 5, bottom: 5),
+              padding: EdgeInsets.only(right: 32, left: 32, top: 5, bottom: 5),
               child: Row(
                 children: [
                   adaptiveDivider,

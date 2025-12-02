@@ -26,33 +26,30 @@ class _SchedulePagePageState extends State<SchedulePage> {
         break;
     }
 
-    return SizedBox(
-      width: 400,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(bottom: 3, right: 24),
-              child: Row(
-                spacing: 5,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(Icons.schedule, size: 16, color: Theme.of(context).hintColor),
-                  Text(widget.schedule.day, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14)),
-                ],
-              ),
-            ),
-            if(classLessons.isNotEmpty)
-              ...classLessons.map((entry) {
-                return ScheduleCard(
-                  entry: entry,
-                  classSchedule: classLessons
-                ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
-              }),
-            if(classLessons.isEmpty)
-              Text("אין שיעורים")
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Padding(
+          //   padding: EdgeInsets.only(bottom: 3),
+          //   child: Row(
+          //     spacing: 5,
+          //     crossAxisAlignment: CrossAxisAlignment.center,
+          //     children: [
+          //       Icon(Icons.schedule, size: 16, color: Theme.of(context).hintColor),
+          //       Text(widget.schedule.day, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14)),
+          //     ],
+          //   ),
+          // ),
+          if(classLessons.isNotEmpty)
+            ...classLessons.map((entry) {
+              return ScheduleCard(
+                entry: entry,
+                classSchedule: classLessons
+              ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
+            }),
+          if(classLessons.isEmpty)
+            Text("אין שיעורים")
+        ],
       ),
     );
   }

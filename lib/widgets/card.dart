@@ -253,11 +253,11 @@ class _ScheduleCardState extends State<ScheduleCard> {
                       children: [
                         ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: leadingColors[entryIndex].shade200,
+                            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
                             child: Text(
                               textAlign: TextAlign.center,
                               entry.hours[0],
-                              style: GoogleFonts.kronaOne(fontWeight: FontWeight.w500, color: leadingColors[entryIndex].shade900)
+                              style: GoogleFonts.kronaOne(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSecondaryContainer)
                             ),
                           ),
                           trailing: Row(
@@ -279,7 +279,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                               dense: true,
                               title: Text(entry.subjects[index]),
                               subtitle: Text(entry.teachers[index]),
-                              tileColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8)
+                              tileColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9)
                             ),
                           ),
                         ],

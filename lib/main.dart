@@ -34,8 +34,8 @@ class _AppState extends State<App> {
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp(
           title: "מערכת הנדסאים",
-          theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: lightDynamic?.primary ?? Colors.blue, brightness: Brightness.light)),
-          darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.neutral, seedColor: darkDynamic?.primary ?? Colors.blue, brightness: Brightness.dark)),
+          theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: lightDynamic?.primary ?? Colors.grey, brightness: Brightness.light)),
+          darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: darkDynamic?.primary ?? Colors.grey, brightness: Brightness.dark)),
           debugShowCheckedModeBanner: false,
           home: Directionality(
             textDirection: TextDirection.rtl,
@@ -84,7 +84,7 @@ class _AppState extends State<App> {
                                   Material(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.secondaryContainer.withOpacity(0.2),
+                                    ).scaffoldBackgroundColor.withOpacity(0.5),
                                     child: TabBar(
                                       enableFeedback: true,
                                       splashBorderRadius: BorderRadius.circular(

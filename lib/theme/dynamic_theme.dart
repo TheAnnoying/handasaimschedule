@@ -7,7 +7,7 @@ ThemeData getThemeData({required ColorScheme colorScheme}) {
     brightness: colorScheme.brightness,
     fontFamily: GoogleFonts.rubik().fontFamily,
     colorScheme: colorScheme,
-    splashColor: colorScheme.surfaceTint.withOpacity(0.05),
-    highlightColor: colorScheme.surfaceTint.withOpacity(0.05),
+    splashColor: colorScheme.surfaceTint.withOpacity(0.15),
+    highlightColor: colorScheme.surfaceTint.withOpacity(0.15),
   );
 }

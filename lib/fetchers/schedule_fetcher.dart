@@ -11,11 +11,13 @@ class Lesson {
   final List<String> subjects;
   final List<String> hours;
   final List<String> teachers;
+  final String raw;
 
   Lesson({
     required this.subjects,
     required this.hours,
     required this.teachers,
+    required this.raw,
   });
 }
 
@@ -53,69 +55,44 @@ class Schedule {
     return _classes.map((c) => c.name).toList();
   }
 
-  ClassSchedule? getTeacherSchedule(String teacherName) {
+  ClassSchedule? getTeacherSchedule(String teacherName, raw) {
     final teacherSchedule = ClassSchedule(teacherName);
     final Map<String, Lesson> mergedLessons = {};
 
-    for (final classSchedule in _classes) {
-      for (final lesson in classSchedule.lessons) {
-        for (int i = 0; i < lesson.teachers.length; i++) {
-          if (lesson.teachers[i] == teacherName) {
-            final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
-            final hour = lesson.hours;
-            final key = '$hour[0]';
+    if(raw) {
+      for (final classSchedule in _classes) {
+        for (final lesson in classSchedule.lessons) {
+          if(lesson.raw.contains(teacherName)) teacherSchedule.lessons.add(lesson);
+        }
+      }
+    } else {
+      for (final classSchedule in _classes) {
+        for (final lesson in classSchedule.lessons) {
+          for (int i = 0; i < lesson.teachers.length; i++) {
+            if (lesson.teachers[i] == teacherName) {
+              final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
+              final hour = lesson.hours;
+              final key = '$hour[0]';
 
-            if (!mergedLessons.containsKey(key)) {
-              mergedLessons[key] = Lesson(
-                subjects: [subject],
-                hours: hour,
-                teachers: [classSchedule.name], // now used for class names
-              );
-            } else {
-              // add class name to existing merged lesson
-              mergedLessons[key]!.teachers.add(classSchedule.name);
+              if (!mergedLessons.containsKey(key)) {
+                mergedLessons[key] = Lesson(
+                  subjects: [subject],
+                  hours: hour,
+                  teachers: [classSchedule.name], // now used for class names
+                  raw: lesson.raw
+                );
+              } else {
+                // add class name to existing merged lesson
+                mergedLessons[key]!.teachers.add(classSchedule.name);
+              }
             }
           }
         }
       }
+
+      teacherSchedule.lessons.addAll(mergedLessons.values);
     }
 
-    teacherSchedule.lessons.addAll(mergedLessons.values);
-    teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
-    return teacherSchedule;
-  }
-
-  ClassSchedule? getSubjectSchedule(String subjectName) {
-    final teacherSchedule = ClassSchedule(subjectName);
-    final Map<String, Lesson> mergedLessons = {};
-
-    for (final classSchedule in _classes) {
-      for (final lesson in classSchedule.lessons) {
-        for (int i = 0; i < lesson.subjects.length; i++) {
-          if (lesson.subjects[i] == subjectName) {
-            final teacher = i < lesson.teachers.length ? lesson.teachers[i] : 'לא ידוע';
-            final hour = lesson.hours;
-            final key = '$hour[0]';
-
-            if (!mergedLessons.containsKey(key)) {
-              mergedLessons[key] = Lesson(
-                subjects: [classSchedule.name], // now used for class names
-                hours: hour,
-                teachers: [teacher],
-              );
-            } else {
-              // add teacher to existing lesson
-              mergedLessons[key]!.teachers.add(teacher);
-
-              // add class to existing lesson
-              mergedLessons[key]!.subjects.add(classSchedule.name);
-            }
-          }
-        }
-      }
-    }
-
-    teacherSchedule.lessons.addAll(mergedLessons.values);
     teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
     return teacherSchedule;
   }
@@ -208,7 +185,8 @@ class ScheduleRepository {
               output.addLessonToClass(index, Lesson(
                 hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours[1], hours[2]],
                 subjects: subjects,
-                teachers: teachers
+                teachers: teachers,
+                raw: cellHtml.replaceAll("<br>", "\n")
               ));
             }
           }

@@ -9,8 +9,9 @@ import 'dart:async';
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
   final List<Lesson> classSchedule;
+  final bool raw;
 
-  const ScheduleCard({super.key, required this.entry, required this.classSchedule});
+  const ScheduleCard({super.key, required this.entry, required this.classSchedule, required this.raw});
 
   @override
   State<ScheduleCard> createState() => _ScheduleCardState();
@@ -137,27 +138,6 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return elapsed / totalDuration;
   }
 
-  List<MaterialColor> leadingColors = [
-    Colors.pink,
-    Colors.red,
-    Colors.deepOrange,
-    Colors.orange,
-    Colors.amber,
-    Colors.yellow,
-    Colors.lightGreen,
-    Colors.green,
-    Colors.teal,
-    Colors.cyan,
-    Colors.lightBlue,
-    Colors.blue,
-    Colors.indigo,
-    Colors.purple,
-    Colors.deepPurple,
-    Colors.blueGrey,
-    Colors.brown,
-    Colors.grey,
-  ];
-
   @override
   void dispose() {
     _timer.cancel();
@@ -170,7 +150,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     final entry = widget.entry;
 
     final entryIndex = classSchedule.indexOf(entry);
-    final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length;
+    final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length && !widget.raw;
 
     final nextEntry = entryIndex == classSchedule.length - 1 ? null : classSchedule[entryIndex + 1];
     final lastEntry = entryIndex == 0 ? null : classSchedule[entryIndex - 1];
@@ -268,8 +248,9 @@ class _ScheduleCardState extends State<ScheduleCard> {
                               Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
                             ],
                           ),
-                          title: expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1)),
-                          subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
+                          title: 
+                            widget.raw ? Text(entry.raw) : (expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1))),
+                          subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : (widget.raw ? null : Text(entry.teachers.join(', '))),
                         ),
                         if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
                           Padding(

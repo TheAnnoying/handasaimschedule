@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 
 class SchedulePage extends StatefulWidget {
   final Schedule schedule;
-  const SchedulePage({super.key, required this.schedule});
+  final bool raw;
+  const SchedulePage({super.key, required this.schedule, required this.raw});
 
   @override
   State<SchedulePage> createState() => _SchedulePagePageState();
@@ -18,9 +19,7 @@ class _SchedulePagePageState extends State<SchedulePage> {
     final List<Lesson> classLessons;
     switch(AppStorage.get("selectedType")) {
       case "teacher":
-        classLessons = widget.schedule.getTeacherSchedule(AppStorage.get("selectedName"))!.lessons;
-      case "subject":
-        classLessons = widget.schedule.getSubjectSchedule(AppStorage.get("selectedName"))!.lessons;
+        classLessons = widget.schedule.getTeacherSchedule(AppStorage.get("selectedName"), AppStorage.get("rawMode"))!.lessons;
       default:
         classLessons = widget.schedule.getClass(AppStorage.get("selectedName") ?? widget.schedule.getClasses()[0])!.lessons;
         break;
@@ -44,7 +43,8 @@ class _SchedulePagePageState extends State<SchedulePage> {
             ...classLessons.map((entry) {
               return ScheduleCard(
                 entry: entry,
-                classSchedule: classLessons
+                classSchedule: classLessons,
+                raw: widget.raw
               ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
             }),
           if(classLessons.isEmpty)

@@ -22,6 +22,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   String _selectedName = AppStorage.get("selectedName") ?? "ז'1";
+  bool _rawMode = AppStorage.get("rawMode") ?? false;
 
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _AppState extends State<App> {
                     ),
                     body: Align(
                       alignment: Alignment.topCenter,
-                      child: SizedBox(width: 500, child: SchedulePage(schedule: schedule)),
+                      child: SizedBox(width: 500, child: SchedulePage(schedule: schedule, raw: _rawMode)),
                     ),
                     floatingActionButtonLocation:
                         FloatingActionButtonLocation.startFloat,
@@ -100,9 +101,9 @@ class _AppState extends State<App> {
                                           text: "לפי מורה",
                                         ),
                                         Tab(
-                                          icon: Icon(Icons.square_foot),
-                                          text: "לפי מקצוע",
-                                        ),
+                                          icon: Icon(Icons.settings),
+                                          text: "הגדרות"
+                                        )
                                       ],
                                     ),
                                   ),
@@ -133,12 +134,26 @@ class _AppState extends State<App> {
                                           "teacher",
                                           schedule.teacherList.toList()..sort(),
                                         ),
-                                        radioGroupSelect(
-                                          context,
-                                          schedule,
-                                          "subject",
-                                          schedule.subjectList.toList()..sort(),
-                                        ),
+                                        Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: Column(
+                                            children: [
+                                              SwitchListTile(
+                                                title: Text("נתונים גולמיים"),
+                                                subtitle: Text("הפעל אם אתה מוצא נתונים לא עקביים. פעולה זו תציג נתונים גולמיים אך תהפוך את לוח הזמנים למכוער ולא מעוצב במיוחד."),
+                                                secondary: Icon(Icons.emergency),
+                                                value: _rawMode,
+                                                onChanged: (bool value) {
+                                                  setState(() {
+                                                    _rawMode = value;
+                                                  });
+                                            
+                                                  AppStorage.set("rawMode", value);
+                                              }),
+
+                                            ]
+                                          ),
+                                        )
                                       ],
                                     ),
                                   ),

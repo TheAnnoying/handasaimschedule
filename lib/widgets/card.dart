@@ -20,14 +20,14 @@ class ScheduleCard extends StatefulWidget {
 class _ScheduleCardState extends State<ScheduleCard> {
   bool expandState = false;
   late Timer _timer;
-  DateTime _now = DateTime.now();
+  DateTime _now = .now();
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
+    _timer = .periodic(Duration(seconds: 10), (timer) {
       setState(() {
-        _now = DateTime.now();
+        _now = .now();
       });
     });
   }
@@ -181,18 +181,18 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.only(right: 24, left: 24, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 48 : 0),
+          padding: .only(right: 24, left: 24, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 48 : 0),
           child: Material(
             elevation: 0,
-            type: MaterialType.card,
+            type: .card,
             color: Theme.of(context).colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.vertical(
+            borderRadius: .vertical(
               top: classSchedule.indexOf(entry) == 0 || (expandForMoreSubjects && expandState) || isBreakBefore
-                ? const Radius.circular(16)
-                : Radius.circular(5),
+                ? .circular(16)
+                : .circular(5),
               bottom: classSchedule.indexOf(entry) == classSchedule.length - 1 || (expandForMoreSubjects && expandState) || isBreakAfter
-                ? const Radius.circular(16)
-                : Radius.circular(5)
+                ? .circular(16)
+                : .circular(5)
             ),
             clipBehavior: Clip.hardEdge,
             child: InkWell(
@@ -202,7 +202,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
               child: AnimatedSize(
                 duration: Duration(milliseconds: 350),
                 curve: Curves.easeOutExpo,
-                alignment: Alignment.topCenter,
+                alignment: .topCenter,
                 child: Stack(
                   children: [
                     if(timeIsCurrentHour) Positioned.fill(
@@ -220,8 +220,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
                                     Theme.of(context).splashColor.withAlpha(40),
                                     Theme.of(context).highlightColor.withAlpha(20),
                                   ],
-                                  begin: Alignment.center,
-                                  end: Alignment.bottomCenter,
+                                  begin: .center,
+                                  end: .bottomCenter,
                                 ),
                                 value: value
                               )
@@ -235,14 +235,14 @@ class _ScheduleCardState extends State<ScheduleCard> {
                           leading: CircleAvatar(
                             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
                             child: Text(
-                              textAlign: TextAlign.center,
+                              textAlign: .center,
                               entry.hours[0],
                               style: GoogleFonts.kronaOne(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSecondaryContainer)
                             ),
                           ),
                           trailing: Row(
                             spacing: 15,
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisSize: .min,
                             children: [
                               if(expandForMoreSubjects) AnimatedRotation(turns: expandState ? 0.5 : 0, curve: Curves.easeOutExpo, duration: Duration(milliseconds: 350), child: Icon(size: 20, Icons.keyboard_arrow_down)),
                               Text("${entry.hours[1]}\n${entry.hours[2]}", style: GoogleFonts.sanchez(fontSize: 13)),
@@ -254,7 +254,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                         ),
                         if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
                           Padding(
-                            padding: EdgeInsets.only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
+                            padding: .only(right: 8, left: 8, top: index == 0 ? 0 : 1, bottom: index == entry.subjects.length - 1 ? 8 : 1),
                             child: ListTile(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: index == 0 ? Radius.circular(16) : Radius.circular(5), bottom: index == entry.subjects.length - 1 ? Radius.circular(16) : Radius.circular(5)),),
                               dense: true,
@@ -274,12 +274,12 @@ class _ScheduleCardState extends State<ScheduleCard> {
         if(isBreakAfter)
           Center(
             child: Padding(
-              padding: EdgeInsets.only(right: 32, left: 32, top: 5, bottom: 5),
+              padding: .only(right: 32, left: 32, top: 5, bottom: 5),
               child: Row(
                 children: [
                   adaptiveDivider,
                   Padding(
-                    padding: const EdgeInsets.only(right: 8.0, left: 8.0),
+                    padding: .only(right: 8.0, left: 8.0),
                     child: Text(timeDifference(entry.hours[2], nextEntry.hours[1]) + (timeIsWithinBreak ? ' - כעת' : ''), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
                   ),
                   adaptiveDivider,

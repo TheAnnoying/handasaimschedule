@@ -29,10 +29,10 @@ class _SchedulePagePageState extends State<SchedulePage> {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.only(bottom: 3, right: 32),
+            padding: .only(bottom: 3, right: 32),
             child: Row(
               spacing: 5,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: .center,
               children: [
                 Icon(Icons.schedule, size: 16, color: Theme.of(context).hintColor),
                 Text(widget.schedule.day, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 14)),

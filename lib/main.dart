@@ -35,20 +35,20 @@ class _AppState extends State<App> {
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         return MaterialApp(
           title: "מערכת הנדסאים",
-          theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: lightDynamic?.primary ?? Colors.grey, brightness: Brightness.light)),
-          darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot, seedColor: darkDynamic?.primary ?? Colors.grey, brightness: Brightness.dark)),
+          theme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: .tonalSpot, seedColor: lightDynamic?.primary ?? Colors.grey, brightness: .light)),
+          darkTheme: getThemeData(colorScheme: ColorScheme.fromSeed(dynamicSchemeVariant: .tonalSpot, seedColor: darkDynamic?.primary ?? Colors.grey, brightness: .dark)),
           debugShowCheckedModeBanner: false,
           home: Directionality(
-            textDirection: TextDirection.rtl,
+            textDirection: .rtl,
             child: Consumer(
               builder: (context, ref, _) {
                 final scheduleState = ref.watch(scheduleProvider);
 
                 return scheduleState.when(
-                  loading: () => const Scaffold(
+                  loading: () => Scaffold(
                     body: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (_, _) => const Scaffold(
+                  error: (_, _) => Scaffold(
                     body: Center(child: Text('שגיאה בטעינת המערכת')),
                   ),
                   data: (schedule) => Scaffold(
@@ -60,11 +60,10 @@ class _AppState extends State<App> {
                       title: Text("מערכת הנדסאים"),
                     ),
                     body: Align(
-                      alignment: Alignment.topCenter,
+                      alignment: .topCenter,
                       child: SizedBox(width: 500, child: SchedulePage(schedule: schedule, raw: _rawMode)),
                     ),
-                    floatingActionButtonLocation:
-                        FloatingActionButtonLocation.startFloat,
+                    floatingActionButtonLocation: .startFloat,
                     floatingActionButton: FloatingActionButton.extended(
                       icon: Icon(Icons.edit),
                       tooltip: "החלפת המידע המוצג",
@@ -73,10 +72,10 @@ class _AppState extends State<App> {
                         context: context,
                         builder: (context) {
                           return Dialog(
-                            constraints: BoxConstraints.loose(
+                            constraints: .loose(
                               Size.fromWidth(400),
                             ),
-                            clipBehavior: Clip.hardEdge,
+                            clipBehavior: .hardEdge,
                             child: DefaultTabController(
                               length: 3,
                               child: Column(
@@ -88,7 +87,7 @@ class _AppState extends State<App> {
                                     ).scaffoldBackgroundColor.withOpacity(0.5),
                                     child: TabBar(
                                       enableFeedback: true,
-                                      splashBorderRadius: BorderRadius.circular(
+                                      splashBorderRadius: .circular(
                                         24,
                                       ),
                                       tabs: [
@@ -135,7 +134,7 @@ class _AppState extends State<App> {
                                           schedule.teacherList.toList()..sort(),
                                         ),
                                         Directionality(
-                                          textDirection: TextDirection.rtl,
+                                          textDirection: .rtl,
                                           child: Column(
                                             children: [
                                               SwitchListTile(
@@ -150,7 +149,6 @@ class _AppState extends State<App> {
                                             
                                                   AppStorage.set("rawMode", value);
                                               }),
-
                                             ]
                                           ),
                                         )
@@ -182,7 +180,7 @@ class _AppState extends State<App> {
   ) {
     return SingleChildScrollView(
       child: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: .rtl,
         child: RadioGroup<String>(
           groupValue: _selectedName,
           onChanged: (String? value) {
@@ -195,12 +193,12 @@ class _AppState extends State<App> {
             Navigator.pop(context);
           },
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: .center,
             children: [
               if (type == "teacher")
                 ListTile(
                   tileColor: Theme.of(context).splashColor,
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: .all(16),
                   leading: Icon(Icons.warning),
                   subtitle: Text(
                     'רשימת המורים בנויה מהמורים שיש להם שעות היום.\nבתור מורה יש מצב שלא תימצא ברשימה הזו.',

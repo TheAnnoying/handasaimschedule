@@ -11,13 +11,11 @@ class Lesson {
   final List<String> subjects;
   final List<String> hours;
   final List<String> teachers;
-  final String raw;
 
   Lesson({
     required this.subjects,
     required this.hours,
-    required this.teachers,
-    required this.raw,
+    required this.teachers
   });
 }
 
@@ -55,44 +53,33 @@ class Schedule {
     return _classes.map((c) => c.name).toList();
   }
 
-  ClassSchedule? getTeacherSchedule(String teacherName, raw) {
+  ClassSchedule? getTeacherSchedule(String teacherName) {
     final teacherSchedule = ClassSchedule(teacherName);
     final Map<String, Lesson> mergedLessons = {};
+    for (final classSchedule in _classes) {
+      for (final lesson in classSchedule.lessons) {
+        for (int i = 0; i < lesson.teachers.length; i++) {
+          if (lesson.teachers[i] == teacherName) {
+            final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
+            final hour = lesson.hours;
+            final key = '$hour[0]';
 
-    if(raw) {
-      for (final classSchedule in _classes) {
-        for (final lesson in classSchedule.lessons) {
-          if(lesson.raw.contains(teacherName)) teacherSchedule.lessons.add(lesson);
-        }
-      }
-    } else {
-      for (final classSchedule in _classes) {
-        for (final lesson in classSchedule.lessons) {
-          for (int i = 0; i < lesson.teachers.length; i++) {
-            if (lesson.teachers[i] == teacherName) {
-              final subject = i < lesson.subjects.length ? lesson.subjects[i] : 'לא ידוע';
-              final hour = lesson.hours;
-              final key = '$hour[0]';
-
-              if (!mergedLessons.containsKey(key)) {
-                mergedLessons[key] = Lesson(
-                  subjects: [subject],
-                  hours: hour,
-                  teachers: [classSchedule.name], // now used for class names
-                  raw: lesson.raw
-                );
-              } else {
-                // add class name to existing merged lesson
-                mergedLessons[key]!.teachers.add(classSchedule.name);
-              }
+            if (!mergedLessons.containsKey(key)) {
+              mergedLessons[key] = Lesson(
+                subjects: [subject],
+                hours: hour,
+                teachers: [classSchedule.name] // now used for class names
+              );
+            } else {
+              // add class name to existing merged lesson
+              mergedLessons[key]!.teachers.add(classSchedule.name);
             }
           }
         }
       }
-
-      teacherSchedule.lessons.addAll(mergedLessons.values);
     }
 
+    teacherSchedule.lessons.addAll(mergedLessons.values);
     teacherSchedule.lessons.sort((a, b) => int.parse(a.hours[0]).compareTo(int.parse(b.hours[0])));
     return teacherSchedule;
   }
@@ -119,81 +106,80 @@ class ScheduleRepository {
   }
 
   Future<Schedule> fetchSchedule() async {
-      final htmlData = await downloadAndExtractHtml(sheetsURL);
-      final document = html_parser.parse(htmlData);
-      final Schedule output = Schedule();
+    final htmlData = await downloadAndExtractHtml(sheetsURL);
+    final document = html_parser.parse(htmlData);
+    final Schedule output = Schedule();
 
-      bool currentDayFound = false;
+    bool currentDayFound = false;
 
-      document.querySelectorAll('thead, th').forEach((e) => e.remove());
-      document.querySelectorAll('tr').forEach((row) {
-        final cells = row.children;
-        if (cells.isEmpty) return;
-        final first = cells.first.text.trim();
-        final second = cells.length > 1 ? cells[1].text.trim() : '';
-        
-        if(first.isNotEmpty && second.isEmpty && !currentDayFound) {
-          output.day = first.replaceAll(RegExp(r'[,-]'), '').replaceAll("חתך כיתות", '').trim();
-          currentDayFound = true;
+    document.querySelectorAll('thead, th').forEach((e) => e.remove());
+    document.querySelectorAll('tr').forEach((row) {
+      final cells = row.children;
+      if (cells.isEmpty) return;
+      final first = cells.first.text.trim();
+      final second = cells.length > 1 ? cells[1].text.trim() : '';
+      
+      if(first.isNotEmpty && second.isEmpty && !currentDayFound) {
+        output.day = first.replaceAll(RegExp(r'[,-]'), '').replaceAll("חתך כיתות", '').trim();
+        currentDayFound = true;
+      }
+
+      if (first.isEmpty && second.isEmpty) {
+        row.remove();
+      } else if (first.isEmpty && second.isNotEmpty) {
+        // remove previous rows
+        var prev = row.previousElementSibling;
+        while (prev != null) {
+          prev.remove();
+          prev = row.previousElementSibling;
         }
+      }
+    });
 
-        if (first.isEmpty && second.isEmpty) {
-          row.remove();
-        } else if (first.isEmpty && second.isNotEmpty) {
-          // remove previous rows
-          var prev = row.previousElementSibling;
-          while (prev != null) {
-            prev.remove();
-            prev = row.previousElementSibling;
-          }
-        }
-      });
+    final rows = document.querySelectorAll('tr');
 
-      final rows = document.querySelectorAll('tr');
+    for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      final cells = rows[rowIndex].children;
+      for (int colIndex = 0; colIndex < cells.length; colIndex++) {
+        final cellHtml = cells[colIndex].innerHtml.trim().replaceAll(RegExp(r'^<br>|<br>$'), '');
+        if (rowIndex == 0 && cellHtml.isNotEmpty) {
+          output.addClass(cellHtml.replaceFirst(' ', "'"));
+        } else {
+          final keys = output.getClasses();
+          if (colIndex - 1 < 0 || colIndex - 1 >= keys.length) continue;
+          final index = keys[colIndex - 1].replaceFirst(' ', "'");
 
-      for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-        final cells = rows[rowIndex].children;
-        for (int colIndex = 0; colIndex < cells.length; colIndex++) {
-          final cellHtml = cells[colIndex].innerHtml.trim().replaceAll(RegExp(r'^<br>|<br>$'), '');
-          if (rowIndex == 0 && cellHtml.isNotEmpty) {
-            output.addClass(cellHtml.replaceFirst(' ', "'"));
-          } else {
-            final keys = output.getClasses();
-            if (colIndex - 1 < 0 || colIndex - 1 >= keys.length) continue;
-            final index = keys[colIndex - 1].replaceFirst(' ', "'");
+          if(index.isNotEmpty && cellHtml.isNotEmpty) {
+            final hours = cells.first.innerHtml.trim().split('<br>');
+            final parts = cellHtml.split('<br>').toList();
 
-            if(index.isNotEmpty && cellHtml.isNotEmpty) {
-              final hours = cells.first.innerHtml.trim().split('<br>');
-              final parts = cellHtml.split('<br>').toList();
+            final teachers = <String>[];
+            final subjects = <String>[];
 
-              final teachers = <String>[];
-              final subjects = <String>[];
+            for (int i = 0; i < parts.length; i += 2) {
+              final teacher = parts[i].trim();
+              final subject = (i + 1 < parts.length) ? parts[i + 1].trim() : '';
 
-              for (int i = 0; i < parts.length; i += 2) {
-                final teacher = parts[i].trim();
-                final subject = (i + 1 < parts.length) ? parts[i + 1].trim() : '';
-
-                if(teacher.isNotEmpty && subject.isNotEmpty) {
-                  teachers.add(teacher);
-                  subjects.add(subject);
-                }
+              if(teacher.isNotEmpty && subject.isNotEmpty) {
+                teachers.add(teacher);
+                subjects.add(subject);
               }
-
-              output.teacherList.addAll(teachers);
-              output.subjectList.addAll(subjects);
-
-              output.addLessonToClass(index, Lesson(
-                hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours[1], hours[2]],
-                subjects: subjects,
-                teachers: teachers,
-                raw: cellHtml.replaceAll("<br>", "\n")
-              ));
             }
+
+            output.teacherList.addAll(teachers);
+            output.subjectList.addAll(subjects);
+
+            output.addLessonToClass(index, Lesson(
+              hours: [hours.first.replaceAll(RegExp(r'[^0-9]+'), ''), hours[1], hours[2]],
+              subjects: subjects,
+              teachers: teachers
+            ));
           }
         }
       }
+    }
 
-      return output;
+    return output;
   }
 }
 

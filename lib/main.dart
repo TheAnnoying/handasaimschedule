@@ -119,7 +119,10 @@ class _AppState extends State<App> {
                               Expanded(
                                 child: Padding(
                                   padding: .only(right: 24, left: 24, top: 48),
-                                  child: SizedBox(width: 500, child: appPages(schedule, context))
+                                  child: Align(
+                                    alignment: .topCenter,
+                                    child: SizedBox(width: 500, child: appPages(schedule, context))
+                                  )
                                 ),
                               )
                             ],
@@ -139,10 +142,7 @@ class _AppState extends State<App> {
 
   Widget appPages(Schedule schedule, BuildContext context) {
     return [
-      Align(
-        alignment: .topCenter,
-        child: SchedulePage(schedule: schedule)
-      ),
+      SchedulePage(schedule: schedule),
       Column(
         children: [
           SegmentedButtons(

@@ -9,9 +9,8 @@ import 'dart:async';
 class ScheduleCard extends StatefulWidget {
   final Lesson entry;
   final List<Lesson> classSchedule;
-  final bool raw;
 
-  const ScheduleCard({super.key, required this.entry, required this.classSchedule, required this.raw});
+  const ScheduleCard({super.key, required this.entry, required this.classSchedule});
 
   @override
   State<ScheduleCard> createState() => _ScheduleCardState();
@@ -150,7 +149,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     final entry = widget.entry;
 
     final entryIndex = classSchedule.indexOf(entry);
-    final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length && !widget.raw;
+    final expandForMoreSubjects = entry.teachers.length > 1 && entry.subjects.length > 1 && entry.teachers.length == entry.subjects.length;
 
     final nextEntry = entryIndex == classSchedule.length - 1 ? null : classSchedule[entryIndex + 1];
     final lastEntry = entryIndex == 0 ? null : classSchedule[entryIndex - 1];
@@ -181,7 +180,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
     return Column(
       children: [
         Padding(
-          padding: .only(right: 24, left: 24, top: 2, bottom: entryIndex == classSchedule.length - 1 ? 48 : 0),
+          padding: .only(top: 2, bottom: entryIndex == classSchedule.length - 1 ? 48 : 0),
           child: Material(
             elevation: 0,
             type: .card,
@@ -205,10 +204,10 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 alignment: .topCenter,
                 child: Stack(
                   children: [
-                    if(timeIsCurrentHour) Positioned.fill(
+                    if(timeIsCurrentHour && !expandState) Positioned.fill(
                       child: IgnorePointer(
                         child: RotatedBox(
-                          quarterTurns: expandState ? 0 : 1,
+                          quarterTurns: 1,
                           child: TweenAnimationBuilder(
                               tween: Tween<double>(begin: 0, end: timeProgress(entry.hours[1], entry.hours[2])),
                               duration: Duration(seconds: 1),
@@ -249,8 +248,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
                             ],
                           ),
                           title: 
-                            widget.raw ? Text(entry.raw) : (expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע", style: TextStyle(letterSpacing: 0.1))),
-                          subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : (widget.raw ? null : Text(entry.teachers.join(', '))),
+                            expandForMoreSubjects ? Text("${entry.subjects[0]} ועוד...") : Text(entry.subjects.isNotEmpty ? entry.subjects.join(', ') : "לא ידוע"),
+                          subtitle: expandForMoreSubjects ? (expandState ? Text("לחצו להסתרה") : Text("לחצו להצגה")) : Text(entry.teachers.join(', ')),
                         ),
                         if(expandForMoreSubjects && expandState) for (var index = 0; index < entry.subjects.length; index++)
                           Padding(
@@ -260,10 +259,10 @@ class _ScheduleCardState extends State<ScheduleCard> {
                               dense: true,
                               title: Text(entry.subjects[index]),
                               subtitle: Text(entry.teachers[index]),
-                              tileColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9)
+                              tileColor: Theme.of(context).scaffoldBackgroundColor
                             ),
                           ),
-                        ],
+                      ],
                     ),
                   ]
                 ),
@@ -274,12 +273,12 @@ class _ScheduleCardState extends State<ScheduleCard> {
         if(isBreakAfter)
           Center(
             child: Padding(
-              padding: .only(right: 32, left: 32, top: 5, bottom: 5),
+              padding: .only(right: 8, left: 8, top: 5, bottom: 5),
               child: Row(
                 children: [
                   adaptiveDivider,
                   Padding(
-                    padding: .only(right: 8.0, left: 8.0),
+                    padding: .symmetric(horizontal: 8),
                     child: Text(timeDifference(entry.hours[2], nextEntry.hours[1]) + (timeIsWithinBreak ? ' - כעת' : ''), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),),
                   ),
                   adaptiveDivider,

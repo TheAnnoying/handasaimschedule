@@ -5,9 +5,9 @@ ThemeData getThemeData({required ColorScheme colorScheme}) {
   return ThemeData(
     useMaterial3: true,
     brightness: colorScheme.brightness,
-    fontFamily: GoogleFonts.rubik().fontFamily,
+    fontFamily: GoogleFonts.huninn().fontFamily,
     colorScheme: colorScheme,
-    splashColor: colorScheme.surfaceTint.withOpacity(0.15),
-    highlightColor: colorScheme.surfaceTint.withOpacity(0.15),
+    splashColor: colorScheme.surfaceTint.withOpacity(0.1),
+    highlightColor: colorScheme.surfaceTint.withOpacity(0.1),
   );
 }

@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 
 class SchedulePage extends StatefulWidget {
   final Schedule schedule;
-  final bool raw;
-  const SchedulePage({super.key, required this.schedule, required this.raw});
+  const SchedulePage({super.key, required this.schedule});
 
   @override
   State<SchedulePage> createState() => _SchedulePagePageState();
@@ -19,7 +18,7 @@ class _SchedulePagePageState extends State<SchedulePage> {
     final List<Lesson> classLessons;
     switch(AppStorage.get("selectedType")) {
       case "teacher":
-        classLessons = widget.schedule.getTeacherSchedule(AppStorage.get("selectedName"), AppStorage.get("rawMode"))!.lessons;
+        classLessons = widget.schedule.getTeacherSchedule(AppStorage.get("selectedName"))!.lessons;
       default:
         classLessons = widget.schedule.getClass(AppStorage.get("selectedName") ?? widget.schedule.getClasses()[0])!.lessons;
         break;
@@ -29,7 +28,7 @@ class _SchedulePagePageState extends State<SchedulePage> {
       child: Column(
         children: [
           Padding(
-            padding: .only(bottom: 3, right: 32),
+            padding: .only(bottom: 3, right: 8),
             child: Row(
               spacing: 5,
               crossAxisAlignment: .center,
@@ -43,8 +42,7 @@ class _SchedulePagePageState extends State<SchedulePage> {
             ...classLessons.map((entry) {
               return ScheduleCard(
                 entry: entry,
-                classSchedule: classLessons,
-                raw: widget.raw
+                classSchedule: classLessons
               ).animate().scale(duration: Duration(milliseconds: 200), begin: Offset(0.95, 0.95), end: Offset(1, 1), curve: Curves.easeOutCirc).fade(duration: Duration(milliseconds: 200), begin: 0, end: 1, curve: Curves.easeOutExpo);
             }),
           if(classLessons.isEmpty)

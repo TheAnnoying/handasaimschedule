@@ -42,7 +42,7 @@ class SegmentedButtons<T> extends StatelessWidget {
             label: item.label,
             icon: item.icon,
             onTap: () {
-              if (!selected) onChanged(item.value);
+              if(!selected) onChanged(item.value);
             },
           ),
         );
@@ -87,41 +87,40 @@ class _Segment extends StatelessWidget {
 
     return SizedBox(
       height: height,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutQuad,
-        decoration: BoxDecoration(
+      child: TweenAnimationBuilder<BorderRadius?>(
+        tween: BorderRadiusTween(end: borderRadius),
+        duration: Duration(milliseconds: 200),
+        builder: (context, r, child) {
+          return Material(
           color: selected ? cs.primary : cs.surfaceContainerHigh,
-          borderRadius: borderRadius,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          clipBehavior: .hardEdge,
-          borderRadius: borderRadius,
+          shape: RoundedRectangleBorder(borderRadius: r ?? .all(.circular(8))),
+          clipBehavior: .antiAlias,
           child: InkWell(
-            borderRadius: borderRadius,
+            borderRadius: r ?? .all(.circular(8)),
             onTap: onTap,
-            child: Padding(
-              padding: .symmetric(horizontal: 24),
-              child: Center(
-                child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOutQuad,
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                    color: fg,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[
-                        Icon(icon, size: 18, color: fg),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(label),
-                    ],
-                  ),
-                ),
+            child: child
+          ),
+          );
+        },
+        child: Padding(
+          padding: .symmetric(horizontal: 24),
+          child: Center(
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOutQuad,
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                color: fg,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: fg),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(label),
+                ],
               ),
             ),
           ),
